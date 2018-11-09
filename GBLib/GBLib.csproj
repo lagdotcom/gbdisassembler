@@ -1,7 +1,126 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3644DD8E-3E5D-41F3-AAAB-877B888E08E4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GBLib</RootNamespace>
+    <AssemblyName>GBLib</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Operand\BankedAddress.cs" />
+    <Compile Include="Operand\Address.cs" />
+    <Compile Include="Operand\ByteValue.cs" />
+    <Compile Include="CBOpCode.cs" />
+    <Compile Include="CGBCompatibility.cs" />
+    <Compile Include="Consts.cs" />
+    <Compile Include="CPUFlag.cs" />
+    <Compile Include="CPUReg.cs" />
+    <Compile Include="DestinationCode.cs" />
+    <Compile Include="Disassembler.cs" />
+    <Compile Include="Operand\IndirectAddress.cs" />
+    <Compile Include="Instruction.cs" />
+    <Compile Include="IOperand.cs" />
+    <Compile Include="IPort.cs" />
+    <Compile Include="IPortHandler.cs" />
+    <Compile Include="LR35902.cs" />
+    <Compile Include="MBC5.cs" />
+    <Compile Include="MemoryBankController.cs" />
+    <Compile Include="OpCode.cs" />
+    <Compile Include="Operand\Plain.cs" />
+    <Compile Include="Port\AbstractPort.cs" />
+    <Compile Include="Port\BGP.cs" />
+    <Compile Include="Port\BGPD.cs" />
+    <Compile Include="Port\BGPI.cs" />
+    <Compile Include="Port\DIV.cs" />
+    <Compile Include="Port\DMA.cs" />
+    <Compile Include="Port\HDMA1.cs" />
+    <Compile Include="Port\HDMA2.cs" />
+    <Compile Include="Port\HDMA3.cs" />
+    <Compile Include="Port\HDMA4.cs" />
+    <Compile Include="Port\HDMA5.cs" />
+    <Compile Include="Port\IE.cs" />
+    <Compile Include="Port\IF.cs" />
+    <Compile Include="Port\JOYP.cs" />
+    <Compile Include="Port\KEY1.cs" />
+    <Compile Include="Port\LCDC.cs" />
+    <Compile Include="Port\LY.cs" />
+    <Compile Include="Port\LYC.cs" />
+    <Compile Include="Port\NR10.cs" />
+    <Compile Include="Port\NR11.cs" />
+    <Compile Include="Port\NR12.cs" />
+    <Compile Include="Port\NR13.cs" />
+    <Compile Include="Port\NR14.cs" />
+    <Compile Include="Port\NR21.cs" />
+    <Compile Include="Port\NR22.cs" />
+    <Compile Include="Port\NR23.cs" />
+    <Compile Include="Port\NR24.cs" />
+    <Compile Include="Port\NR30.cs" />
+    <Compile Include="Port\NR31.cs" />
+    <Compile Include="Port\NR32.cs" />
+    <Compile Include="Port\NR33.cs" />
+    <Compile Include="Port\NR34.cs" />
+    <Compile Include="Port\NR41.cs" />
+    <Compile Include="Port\NR42.cs" />
+    <Compile Include="Port\NR43.cs" />
+    <Compile Include="Port\NR44.cs" />
+    <Compile Include="Port\NR50.cs" />
+    <Compile Include="Port\NR51.cs" />
+    <Compile Include="Port\NR52.cs" />
+    <Compile Include="Port\OBP0.cs" />
+    <Compile Include="Port\OBP1.cs" />
+    <Compile Include="Port\OBPD.cs" />
+    <Compile Include="Port\OBPI.cs" />
+    <Compile Include="Port\RP.cs" />
+    <Compile Include="Port\SB.cs" />
+    <Compile Include="Port\SC.cs" />
+    <Compile Include="Port\SCX.cs" />
+    <Compile Include="Port\SCY.cs" />
+    <Compile Include="Port\STAT.cs" />
+    <Compile Include="Port\SVBK.cs" />
+    <Compile Include="Port\TAC.cs" />
+    <Compile Include="Port\TIMA.cs" />
+    <Compile Include="Port\TMA.cs" />
+    <Compile Include="Port\VBK.cs" />
+    <Compile Include="Port\WaveRAM.cs" />
+    <Compile Include="Port\WX.cs" />
+    <Compile Include="Port\WY.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RomHeader.cs" />
+    <Compile Include="Operand\StackOffset.cs" />
+    <Compile Include="Tool.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

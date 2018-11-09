@@ -4,19 +4,19 @@ namespace GBLib
 {
     public class LR35902
     {
-        public LR35902(byte[] mem)
+        public LR35902(Disassembler dis)
         {
-            Memory = mem;
+            Parent = dis;
         }
 
-        public byte[] Memory;
+        public Disassembler Parent;
 
-        public Instruction Decode(int loc)
+        public Instruction Decode(uint loc)
         {
-            OpCode? op = GetOpCode(Memory[loc]);
+            OpCode? op = GetOpCode(Parent.ROM[loc]);
             if (op == null) return null;
 
-            return new Instruction(this, op.Value, loc);
+            return new Instruction(Parent, op.Value, loc);
         }
 
         public static OpCode? GetOpCode(byte b)
@@ -41,7 +41,7 @@ namespace GBLib
             }
         }
 
-        public static int GetOperandSize(OpCode op)
+        public static uint GetOperandSize(OpCode op)
         {
             switch (op)
             {
@@ -91,7 +91,6 @@ namespace GBLib
                 case OpCode.LD_SP_d16:
                     return 2;
 
-                // TODO
                 case OpCode.PREFIX_CB:
                     return 1;
 
@@ -99,7 +98,7 @@ namespace GBLib
             }
         }
 
-        public static int? GetJumpDestination(OpCode op, int current, byte[] v)
+        public static uint? GetJumpDestination(OpCode op, uint current, byte[] v)
         {
             switch (op)
             {
@@ -113,9 +112,23 @@ namespace GBLib
                 case OpCode.JP_NC_a16:
                 case OpCode.JP_NZ_a16:
                 case OpCode.JP_Z_a16:
-                    int loc = BitConverter.ToInt16(v, 0);
-                    // TODO: ROM switching
-                    if (loc >= 0x4000) return null;
+                    uint loc = BitConverter.ToUInt16(v, 0);
+                    if (loc >= 0x8000)
+                    {
+                        // TODO: jumping to RAM not supported yet
+                        return null;
+                    }
+
+                    if (loc >= 0x4000)
+                    {
+                        if (current < 0x4000)
+                        {
+                            // TODO: may be possible to infer bank from context
+                            return null;
+                        }
+
+                        return Tool.ReBank(current, loc);
+                    }
                     return loc;
 
                 case OpCode.RST_00: return 0x00;
@@ -133,7 +146,7 @@ namespace GBLib
                 case OpCode.JR_r8:
                 case OpCode.JR_Z_r8:
                     sbyte rel = (sbyte)v[0];
-                    return current + 1 + rel;
+                    return (uint)(current + 1 + rel);
 
                 default: return null;
             }

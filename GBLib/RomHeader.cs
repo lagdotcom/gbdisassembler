@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GBLib
@@ -46,8 +47,8 @@ namespace GBLib
         public string NewLicensee;
         public bool SGB;
         public MemoryBankController MBC;
-        public int? ROM;
-        public int? RAM;
+        public int ROM;
+        public int RAM;
         public DestinationCode Destination;
         public byte? OldLicensee;
         public byte Version;
@@ -97,7 +98,7 @@ namespace GBLib
             }
         }
 
-        private static int? DetermineROM(byte b)
+        private static int DetermineROM(byte b)
         {
             switch(b)
             {
@@ -113,24 +114,48 @@ namespace GBLib
                 case 0x52: return 1024 * 1152;
                 case 0x53: return 1024 * 1280;
                 case 0x54: return 1024 * 1536;
-                default: return null;
+                default: return 0;
             }
         }
 
-        private static int? DetermineRAM(byte b)
+        private static int DetermineRAM(byte b)
         {
             switch (b)
             {
-                case 0x00: return 0;
                 case 0x01: return 1024 * 2;
                 case 0x02: return 1024 * 8;
                 case 0x03: return 1024 * 32;
                 case 0x04: return 1024 * 128;
                 case 0x05: return 1024 * 64;
-                default: return null;
+                default: return 0;
             }
         }
 
         private static DestinationCode DetermineDestination(byte b) => b == 0 ? DestinationCode.Japan : DestinationCode.NonJapan;
+
+        public override string ToString()
+        {
+            List<string> lines = new List<string>();
+            List<string> parts = new List<string>();
+
+            parts.Add($"; '{Title}'");
+            parts.Add($"v{Version}");
+            parts.Add($"({Destination})");
+            parts.Add($"({CGB})");
+            if (SGB) parts.Add("(SGB)");
+            if (!LogoValid) parts.Add("(BAD LOGO)");
+            lines.Add(string.Join(" ", parts));
+            parts.Clear();
+
+            parts.Add($"; Manufacturer: {Manufacturer}");
+            if (OldLicensee.HasValue) parts.Add($"Licensee: {OldLicensee}");
+            else parts.Add($"Licensee: {NewLicensee}");
+            lines.Add(string.Join(" ", parts));
+            parts.Clear();
+
+            lines.Add($"; MBC:{MBC} ROM:{ROM / 1024}KB RAM:{RAM / 1024}KB");
+
+            return string.Join("\n", lines);
+        }
     }
 }
