@@ -14,7 +14,6 @@ namespace GBDisassembler
 
     public partial class CodeDisplay : UserControl
     {
-        const int Row = 12;
         const int Main = 100;
         const int Operands = Main + 40;
         private uint offset = 0;
@@ -100,18 +99,26 @@ namespace GBDisassembler
 
                 if (project.Labeller.Labels.ContainsKey(o))
                 {
-                    y += Row;
+                    y += Font.Height;
 
                     string label = project.Labeller.Identify(o);
                     e.Graphics.DrawString($"{label}:", Font, Brushes.DarkGreen, x + Main, y);
 
-                    y += Row;
+                    y += Font.Height;
                 }
 
                 if (o == currentLine)
                     e.Graphics.FillRectangle(Brushes.Yellow, x, y, e.ClipRectangle.Width, Font.Height);
 
-                e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", Font, Brushes.Gray, x, y);
+                Font f = Font;
+                Brush br = Brushes.Gray;
+                if (currentOp != null && currentOp.AbsoluteAddress == o)
+                {
+                    f = hoverFont;
+                    br = Brushes.DarkBlue;
+                }
+
+                e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", f, br, x, y);
 
                 uint move = 1;
                 if (project.Instructions.ContainsKey(o))
@@ -128,7 +135,7 @@ namespace GBDisassembler
                     e.Graphics.DrawString($"${project.ROM[o]:X2}", Font, Brushes.DarkRed, x + Operands, y);
                 }
 
-                y += Row;
+                y += Font.Height;
                 lineHotspots.Add(new Rectangle(e.ClipRectangle.Left, sy, e.ClipRectangle.Width, y - sy), o);
 
                 o += move;
@@ -197,6 +204,13 @@ namespace GBDisassembler
         
         private void CodeDisplay_MouseClick(object sender, MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left && currentOp != null && currentOp.AbsoluteAddress.HasValue)
+            {
+                CurrentLine = currentOp.AbsoluteAddress.Value;
+                Offset = CurrentLine;
+                return;
+            }
+
             var rect = lineHotspots.FirstOrDefault(pair => pair.Key.Contains(e.X, e.Y));
 
             if (rect.Key.Width > 0) CurrentLine = rect.Value;
