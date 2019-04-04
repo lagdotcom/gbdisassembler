@@ -42,12 +42,9 @@ namespace GBLib
         public uint? JumpLocation;
         public uint TotalSize => 1 + OperandSize;
 
-        public override string ToString()
-        {
-            IEnumerable<string> OperandStrings = Operands.Select(op => ImproveOperand(op));
+        public override string ToString() => $"{Address} | {OpType} {string.Join(",", OperandStrings)}".Trim();
 
-            return $"{Address} | {OpType} {string.Join(",", OperandStrings)}".Trim();
-        }
+        public IEnumerable<string> OperandStrings => Operands != null ? Operands.Select(op => ImproveOperand(op)) : new string[0];
 
         private string ImproveOperand(IOperand op)
         {

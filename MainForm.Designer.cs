@@ -38,6 +38,7 @@
             this.OpenRomDialog = new System.Windows.Forms.OpenFileDialog();
             this.OpenProjectDialog = new System.Windows.Forms.OpenFileDialog();
             this.SaveProjectDialog = new System.Windows.Forms.SaveFileDialog();
+            this.Code = new GBDisassembler.CodeDisplay();
             this.TopMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,14 +66,14 @@
             // NewToolStripMenuItem
             // 
             this.NewToolStripMenuItem.Name = "NewToolStripMenuItem";
-            this.NewToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.NewToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.NewToolStripMenuItem.Text = "&New...";
             this.NewToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
             // 
             // OpenToolStripMenuItem
             // 
             this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.OpenToolStripMenuItem.Text = "&Open...";
             this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
@@ -80,7 +81,7 @@
             // 
             this.SaveToolStripMenuItem.Enabled = false;
             this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.SaveToolStripMenuItem.Text = "&Save";
             this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
@@ -88,14 +89,14 @@
             // 
             this.CloseToolStripMenuItem.Enabled = false;
             this.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem";
-            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.CloseToolStripMenuItem.Text = "&Close";
             this.CloseToolStripMenuItem.Click += new System.EventHandler(this.CloseToolStripMenuItem_Click);
             // 
             // ExitToolStripMenuItem
             // 
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.ExitToolStripMenuItem.Text = "E&xit";
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -111,11 +112,21 @@
             // 
             this.SaveProjectDialog.Filter = "Project Files|*.gbdprj";
             // 
+            // Code
+            // 
+            this.Code.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Code.Location = new System.Drawing.Point(0, 24);
+            this.Code.Name = "Code";
+            this.Code.Project = null;
+            this.Code.Size = new System.Drawing.Size(800, 426);
+            this.Code.TabIndex = 1;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Code);
             this.Controls.Add(this.TopMenu);
             this.MainMenuStrip = this.TopMenu;
             this.Name = "MainForm";
@@ -140,6 +151,7 @@
         private System.Windows.Forms.OpenFileDialog OpenRomDialog;
         private System.Windows.Forms.OpenFileDialog OpenProjectDialog;
         private System.Windows.Forms.SaveFileDialog SaveProjectDialog;
+        private CodeDisplay Code;
     }
 }
 

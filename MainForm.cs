@@ -36,6 +36,7 @@ namespace GBDisassembler
             Project = project;
             CloseToolStripMenuItem.Enabled = true;
             SaveToolStripMenuItem.Enabled = true;
+            Code.Project = project;
             UpdateTitleBar();
 
             ProjectLoaded?.Invoke(this, null);
@@ -67,6 +68,7 @@ namespace GBDisassembler
             Project = null;
             CloseToolStripMenuItem.Enabled = false;
             SaveToolStripMenuItem.Enabled = false;
+            Code.Project = null;
             UpdateTitleBar();
 
             ProjectClosed?.Invoke(this, null);
