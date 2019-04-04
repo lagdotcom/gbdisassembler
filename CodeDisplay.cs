@@ -46,6 +46,7 @@ namespace GBDisassembler
             opHovers = new Dictionary<Rectangle, IOperand>();
             hoverFont = new Font(Font, FontStyle.Underline);
 
+            Disposed += CodeDisplay_Disposed;
             MouseWheel += CodeDisplay_MouseWheel;
         }
 
@@ -170,16 +171,21 @@ namespace GBDisassembler
                 Brush br = defaultOpBrush;
                 Font f = Font;
 
-                string s;
+                string s = op.ToString();
+                bool handled = false;
                 IPortHandler handler = project.FindHandler(op);
-                s = handler != null ? handler.Identify(op.AbsoluteAddress.Value) : op.ToString();
+                if (handler != null && op.AbsoluteAddress.HasValue)
+                {
+                    s = handler.Identify(op.AbsoluteAddress.Value);
+                    handled = true;
+                }
 
                 if (op == currentOp)
                 {
                     br = hoverOpBrush;
                     f = hoverFont;
                 }
-                else if (handler != null)
+                else if (handled)
                 {
                     br = identifiedOpBrush;
                 }
@@ -220,6 +226,11 @@ namespace GBDisassembler
                     x += size.Width;
                 }
             }
+        }
+
+        private void CodeDisplay_Disposed(object sender, EventArgs e)
+        {
+            hoverFont.Dispose();
         }
 
         private void CodeDisplay_MouseWheel(object sender, MouseEventArgs e)
