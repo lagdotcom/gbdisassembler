@@ -49,6 +49,8 @@
             this.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "CodeDisplay";
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CodeDisplay_MouseClick);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CodeDisplay_MouseMove);
             this.ResumeLayout(false);
 
         }
