@@ -1,23 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Serialization;
+using ExtendedXmlSerializer.Configuration;
+using ExtendedXmlSerializer.ExtensionModel.Xml;
 
 namespace GBLib
 {
     public class Disassembler
     {
-        public Disassembler(byte[] raw)
+        public Disassembler()
         {
-            ROM = raw;
-
-            Header = new RomHeader(Tool.Slice(raw, 0x100, 0x150));
-            MBC = GetMBC(Header.MBC);
+            Id = Guid.NewGuid();
+            Labeller = new Labeller(this);
+            Namer = new Namer(this);
             CPU = new LR35902(this);
 
             Ports = new List<IPortHandler>
             {
-                MBC
+                Labeller,
+                Namer,
             };
 
             foreach (Type portType in Assembly.GetExecutingAssembly().GetTypes().Where(a => typeof(IPort).IsAssignableFrom(a) && !a.IsAbstract))
@@ -26,34 +31,37 @@ namespace GBLib
                 Ports.Add(port);
             }
 
-            Decompiled = new Dictionary<uint, Instruction>();
-            Labels = new Dictionary<uint, string>()
-            {
-                { 0x00, "RST00" },
-                { 0x08, "RST08" },
-                { 0x10, "RST10" },
-                { 0x18, "RST18" },
-                { 0x20, "RST20" },
-                { 0x28, "RST28" },
-                { 0x30, "RST30" },
-                { 0x38, "RST38" },
-                { 0x40, "VBI" },
-                { 0x48, "LCDCI" },
-                { 0x50, "TIMERI" },
-                { 0x58, "SERI" },
-                { 0x60, "JOYI" },
-                { 0x100, "_ENTRY" },
-            };
+            Instructions = new Dictionary<uint, Instruction>();
         }
 
+        public Disassembler(string filename) : this()
+        {
+            Filename = filename;
+            AcquireROM();
+        }
+
+        public Guid Id;
+
+        public string Filename;
+
+        [XmlIgnore]
         public LR35902 CPU;
+
+        [XmlIgnore]
         public RomHeader Header;
-        public IPortHandler MBC;
+
+        [XmlIgnore]
         public List<IPortHandler> Ports;
+
+        [XmlIgnore]
         public byte[] ROM;
 
-        public Dictionary<uint, Instruction> Decompiled;
-        public Dictionary<uint, string> Labels;
+        [XmlIgnore]
+        public IPortHandler MBC;
+
+        public Dictionary<uint, Instruction> Instructions;
+        public Labeller Labeller;
+        public Namer Namer;
 
         public void StandardAnalysis()
         {
@@ -85,12 +93,12 @@ namespace GBLib
 
                 while (true)
                 {
-                    if (Decompiled.ContainsKey(loc)) break;
+                    if (Instructions.ContainsKey(loc)) break;
 
                     Instruction i = CPU.Decode(loc);
                     if (i == null) break;
 
-                    Decompiled[loc] = i;
+                    Instructions[loc] = i;
 
                     if (i.JumpLocation != null)
                         locations.Enqueue(i.JumpLocation.Value);
@@ -99,6 +107,23 @@ namespace GBLib
                     loc += i.TotalSize;
                 }
             }
+        }
+
+        public static Disassembler Load(string filename)
+        {
+            Disassembler instance;
+
+            using (var stream = File.OpenRead(filename))
+                instance = GetXmlSerializer().Deserialize<Disassembler>(new XmlReaderSettings { IgnoreWhitespace = false }, stream);
+
+            instance.AcquireROM();
+            return instance;
+        }
+
+        public void Save(string filename)
+        {
+            using (var writer = XmlWriter.Create(filename, new XmlWriterSettings { Indent = true }))
+                GetXmlSerializer().Serialize(writer, this);
         }
 
         public IPortHandler FindHandler(IOperand op)
@@ -110,9 +135,31 @@ namespace GBLib
         {
             switch (mbc)
             {
+                case MemoryBankController.MBC2: return new MBC2(this);
                 case MemoryBankController.MBC5: return new MBC5(this);
                 default: throw new NotImplementedException();
             }
+        }
+
+        private static IExtendedXmlSerializer GetXmlSerializer()
+        {
+            return new ConfigurationContainer()
+                .UseOptimizedNamespaces()
+                .ConfigureType<Disassembler>().EnableReferences(d => d.Id)
+                .Create();
+        }
+
+        private void AcquireROM()
+        {
+            using (var f = File.Open(Filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                ROM = new byte[f.Length];
+                f.Read(ROM, 0, (int)f.Length);
+            }
+
+            Header = new RomHeader(Tool.Slice(ROM, 0x100, 0x150));
+            MBC = GetMBC(Header.MBC);
+            Ports.Insert(0, MBC);
         }
     }
 }

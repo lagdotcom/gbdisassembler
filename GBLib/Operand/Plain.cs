@@ -2,7 +2,7 @@
 {
     class Plain : IOperand
     {
-        public Plain(int i)
+        public Plain(int i = 0)
         {
             Value = i;
         }

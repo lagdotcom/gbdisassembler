@@ -2,14 +2,17 @@
 {
     public class MBC5 : IPortHandler
     {
-        public MBC5(Disassembler dis)
+        public MBC5()
         {
-            Parent = dis;
-
             RAMEnabled = false;
             RAMBank = 0;
             ROMBankLo = 1;
             ROMBankHi = 0;
+        }
+
+        public MBC5(Disassembler dis) : this()
+        {
+            Parent = dis;
         }
 
         public Disassembler Parent;

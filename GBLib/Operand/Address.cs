@@ -2,7 +2,7 @@
 {
     class Address : IOperand
     {
-        public Address(uint i)
+        public Address(uint i = 0)
         {
             Value = i;
         }

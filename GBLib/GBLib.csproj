@@ -30,8 +30,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ExtendedXmlSerializer, Version=2.1.13.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExtendedXmlSerializer.2.1.13\lib\net45\ExtendedXmlSerializer.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Interactive, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Interactive.3.1.1\lib\net45\System.Interactive.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,6 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Labeller.cs" />
+    <Compile Include="MBC2.cs" />
+    <Compile Include="Namer.cs" />
     <Compile Include="Operand\BankedAddress.cs" />
     <Compile Include="Operand\Address.cs" />
     <Compile Include="Operand\ByteValue.cs" />
@@ -121,6 +133,9 @@
     <Compile Include="RomHeader.cs" />
     <Compile Include="Operand\StackOffset.cs" />
     <Compile Include="Tool.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

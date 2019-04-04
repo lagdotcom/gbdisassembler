@@ -2,7 +2,7 @@
 {
     class StackOffset : IOperand
     {
-        public StackOffset(byte b)
+        public StackOffset(byte b = 0)
         {
             Value = b;
         }

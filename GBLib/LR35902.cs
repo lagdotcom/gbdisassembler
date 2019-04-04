@@ -4,7 +4,9 @@ namespace GBLib
 {
     public class LR35902
     {
-        public LR35902(Disassembler dis)
+        public LR35902() { }
+
+        public LR35902(Disassembler dis) : base()
         {
             Parent = dis;
         }

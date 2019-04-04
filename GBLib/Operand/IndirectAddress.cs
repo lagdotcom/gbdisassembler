@@ -2,7 +2,7 @@
 {
     class IndirectAddress : IOperand
     {
-        public IndirectAddress(uint i)
+        public IndirectAddress(uint i = 0)
         {
             Value = i;
         }

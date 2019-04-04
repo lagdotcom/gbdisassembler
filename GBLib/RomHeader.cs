@@ -6,7 +6,9 @@ namespace GBLib
 {
     public class RomHeader
     {
-        public RomHeader(byte[] raw)
+        public RomHeader() { }
+
+        public RomHeader(byte[] raw) : this()
         {
             CGB = DetermineCGB(raw[0x43]);
             SGB = DetermineSGB(raw[0x46]);

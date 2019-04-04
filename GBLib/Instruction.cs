@@ -7,7 +7,8 @@ namespace GBLib
 {
     public class Instruction
     {
-        public Instruction(Disassembler dis, OpCode op, uint loc)
+        public Instruction() { }
+        public Instruction(Disassembler dis, OpCode op, uint loc) : this()
         {
             Parent = dis;
             Location = loc;
@@ -15,7 +16,7 @@ namespace GBLib
             Op = op;
             OperandSize = LR35902.GetOperandSize(op);
 
-            OperandBytes = Tool.Slice(Parent.ROM, loc + 1, (uint)(loc + TotalSize));
+            OperandBytes = Tool.Slice(Parent.ROM, loc + 1, loc + TotalSize);
             IsEnd = LR35902.IsOpEnd(op);
             JumpLocation = LR35902.GetJumpDestination(op, loc + 1, OperandBytes);
 
@@ -30,7 +31,7 @@ namespace GBLib
         public Disassembler Parent;
         public uint Location;
         public OpCode Op;
-        public CBOpCode CBOp;
+        public CBOpCode? CBOp;
         public byte[] OperandBytes;
 
         public string OpType;
@@ -45,7 +46,7 @@ namespace GBLib
         {
             IEnumerable<string> OperandStrings = Operands.Select(op => ImproveOperand(op));
 
-            return $"{Address} | {OpType} {string.Join(",", OperandStrings)}";
+            return $"{Address} | {OpType} {string.Join(",", OperandStrings)}".Trim();
         }
 
         private string ImproveOperand(IOperand op)
@@ -54,10 +55,16 @@ namespace GBLib
             if (handler != null)
                 return handler.Identify(op.AbsoluteAddress.Value);
 
+            if (op is BankedAddress && Address.Bank > 1)
+            {
+                BankedAddress ba = op as BankedAddress;
+                if (ba.Bank == 1) return ba.OverrideBankString(Address.Bank);
+            }
+
             return op.ToString();
         }
 
-        private static string DetermineOpType(OpCode op, CBOpCode cb)
+        private static string DetermineOpType(OpCode op, CBOpCode? cb)
         {
             if (op == OpCode.PREFIX_CB)
                 switch (cb)

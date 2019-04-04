@@ -21,7 +21,8 @@
         public static CPUReg HLIP = new CPUReg("(HL+)");
         public static CPUReg SP = new CPUReg("SP");
 
-        private CPUReg(string name)
+        public CPUReg() { }
+        public CPUReg(string name) : this()
         {
             Name = name;
         }

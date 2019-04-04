@@ -2,7 +2,7 @@
 {
     class ByteValue : IOperand
     {
-        public ByteValue(byte b)
+        public ByteValue(byte b = 0)
         {
             Value = b;
         }

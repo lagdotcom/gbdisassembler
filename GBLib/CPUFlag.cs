@@ -7,7 +7,8 @@
         public static CPUFlag NC = new CPUFlag("nc");
         public static CPUFlag NZ = new CPUFlag("nz");
 
-        private CPUFlag(string name)
+        public CPUFlag() { }
+        public CPUFlag(string name) : this()
         {
             Name = name;
         }
