@@ -13,6 +13,9 @@
         public uint? AbsoluteAddress => null;
         public bool Read => false;
         public bool Write => false;
+        public bool IsHex => true;
+        public bool IsNumeric => true;
+        public bool IsRegister => false;
 
         public override string ToString() => $"(${Value:X4})";
     }

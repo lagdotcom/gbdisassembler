@@ -10,6 +10,9 @@
         public uint Value;
         public bool Read { get; set; }
         public bool Write { get; set; }
+        public bool IsHex => true;
+        public bool IsNumeric => true;
+        public bool IsRegister => false;
 
         public uint? AbsoluteAddress => IO ? Value : (uint?)null;
         public bool IO => Read || Write;

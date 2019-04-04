@@ -19,10 +19,23 @@ namespace GBDisassembler
         private uint offset = 0;
         private uint currentLine = 0;
         private IOperand currentOp = null;
-        private Font hoverFont;
         private Dictionary<Rectangle, uint> lineHotspots;
         private Dictionary<Rectangle, IOperand> opHovers;
         private Disassembler project;
+
+        private Font hoverFont;
+        private Brush realOpBrush = Brushes.Blue;
+        private Brush offsetBrush = Brushes.Gray;
+        private Brush labelBrush = Brushes.DarkGreen;
+        private Brush hoverOffsetBrush = Brushes.DarkBlue;
+        private Brush hexOpBrush = Brushes.DarkRed;
+        private Brush fakeOpBrush = Brushes.LightGray;
+        private Brush defaultOpBrush = Brushes.Black;
+        private Brush hoverOpBrush = Brushes.Blue;
+        private Brush numericOpBrush = Brushes.Purple;
+        private Brush registerOpBrush = Brushes.Blue;
+        private Brush addressOpBrush = Brushes.Red;
+        private Brush identifiedOpBrush = Brushes.DarkOrange;
 
         public CodeDisplay()
         {
@@ -102,7 +115,7 @@ namespace GBDisassembler
                     y += Font.Height;
 
                     string label = project.Labeller.Identify(o);
-                    e.Graphics.DrawString($"{label}:", Font, Brushes.DarkGreen, x + Main, y);
+                    e.Graphics.DrawString($"{label}:", Font, labelBrush, x + Main, y);
 
                     y += Font.Height;
                 }
@@ -111,11 +124,11 @@ namespace GBDisassembler
                     e.Graphics.FillRectangle(Brushes.Yellow, x, y, e.ClipRectangle.Width, Font.Height);
 
                 Font f = Font;
-                Brush br = Brushes.Gray;
+                Brush br = offsetBrush;
                 if (currentOp != null && currentOp.AbsoluteAddress == o)
                 {
                     f = hoverFont;
-                    br = Brushes.DarkBlue;
+                    br = hoverOffsetBrush;
                 }
 
                 e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", f, br, x, y);
@@ -126,13 +139,13 @@ namespace GBDisassembler
                     Instruction inst = project.Instructions[o];
                     move = inst.TotalSize;
 
-                    PaintInstruction(e.Graphics, inst.OpType, y);
+                    PaintInstruction(e.Graphics, inst.OpType, true, y);
                     if (inst.Operands != null) PaintOperands(e.Graphics, inst.Operands, y);
                 }
                 else
                 {
-                    PaintInstruction(e.Graphics, "db", y);
-                    e.Graphics.DrawString($"${project.ROM[o]:X2}", Font, Brushes.DarkRed, x + Operands, y);
+                    PaintInstruction(e.Graphics, "db", false, y);
+                    e.Graphics.DrawString($"${project.ROM[o]:X2}", Font, hexOpBrush, x + Operands, y);
                 }
 
                 y += Font.Height;
@@ -142,9 +155,9 @@ namespace GBDisassembler
             }
         }
 
-        private void PaintInstruction(Graphics g, string op, int y)
+        private void PaintInstruction(Graphics g, string op, bool real, int y)
         {
-            g.DrawString(op, Font, Brushes.Black, Padding.Left + Main, y);
+            g.DrawString(op, Font, real ? realOpBrush : fakeOpBrush, Padding.Left + Main, y);
         }
 
         private void PaintOperands(Graphics g, IOperand[] ops, int y)
@@ -154,19 +167,37 @@ namespace GBDisassembler
 
             foreach (IOperand op in ops)
             {
-                Brush br;
-                Font f;
-                string s = op.ToString();
+                Brush br = defaultOpBrush;
+                Font f = Font;
+
+                string s;
+                IPortHandler handler = project.FindHandler(op);
+                s = handler != null ? handler.Identify(op.AbsoluteAddress.Value) : op.ToString();
 
                 if (op == currentOp)
                 {
-                    br = Brushes.Blue;
+                    br = hoverOpBrush;
                     f = hoverFont;
                 }
-                else
+                else if (handler != null)
                 {
-                    br = Brushes.Black;
-                    f = Font;
+                    br = identifiedOpBrush;
+                }
+                else if (op.IsRegister)
+                {
+                    br = registerOpBrush;
+                }
+                else if (op.AbsoluteAddress.HasValue)
+                {
+                    br = addressOpBrush;
+                }
+                else if (op.IsHex)
+                {
+                    br = hexOpBrush;
+                }
+                else if (op.IsNumeric)
+                {
+                    br = numericOpBrush;
                 }
 
                 Size size = g.MeasureString(s, f).ToSize();
@@ -185,7 +216,7 @@ namespace GBDisassembler
                     s = ", ";
                     size = g.MeasureString(s, Font).ToSize();
 
-                    g.DrawString(s, Font, Brushes.Black, x, y);
+                    g.DrawString(s, Font, defaultOpBrush, x, y);
                     x += size.Width;
                 }
             }
