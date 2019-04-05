@@ -38,8 +38,12 @@
             this.OpenRomDialog = new System.Windows.Forms.OpenFileDialog();
             this.OpenProjectDialog = new System.Windows.Forms.OpenFileDialog();
             this.SaveProjectDialog = new System.Windows.Forms.SaveFileDialog();
+            this.ToolPanel = new System.Windows.Forms.Panel();
+            this.FwdBtn = new System.Windows.Forms.Button();
+            this.BackBtn = new System.Windows.Forms.Button();
             this.Code = new GBDisassembler.CodeDisplay();
             this.TopMenu.SuspendLayout();
+            this.ToolPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // TopMenu
@@ -112,18 +116,54 @@
             // 
             this.SaveProjectDialog.Filter = "Project Files|*.gbdprj";
             // 
+            // ToolPanel
+            // 
+            this.ToolPanel.Controls.Add(this.FwdBtn);
+            this.ToolPanel.Controls.Add(this.BackBtn);
+            this.ToolPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.ToolPanel.Location = new System.Drawing.Point(0, 24);
+            this.ToolPanel.Name = "ToolPanel";
+            this.ToolPanel.Padding = new System.Windows.Forms.Padding(3);
+            this.ToolPanel.Size = new System.Drawing.Size(800, 36);
+            this.ToolPanel.TabIndex = 2;
+            // 
+            // FwdBtn
+            // 
+            this.FwdBtn.Dock = System.Windows.Forms.DockStyle.Left;
+            this.FwdBtn.Enabled = false;
+            this.FwdBtn.Location = new System.Drawing.Point(33, 3);
+            this.FwdBtn.Margin = new System.Windows.Forms.Padding(5);
+            this.FwdBtn.Name = "FwdBtn";
+            this.FwdBtn.Size = new System.Drawing.Size(30, 30);
+            this.FwdBtn.TabIndex = 1;
+            this.FwdBtn.Text = ">";
+            this.FwdBtn.UseVisualStyleBackColor = true;
+            // 
+            // BackBtn
+            // 
+            this.BackBtn.Dock = System.Windows.Forms.DockStyle.Left;
+            this.BackBtn.Enabled = false;
+            this.BackBtn.Location = new System.Drawing.Point(3, 3);
+            this.BackBtn.Margin = new System.Windows.Forms.Padding(5);
+            this.BackBtn.Name = "BackBtn";
+            this.BackBtn.Size = new System.Drawing.Size(30, 30);
+            this.BackBtn.TabIndex = 0;
+            this.BackBtn.Text = "<";
+            this.BackBtn.UseVisualStyleBackColor = true;
+            // 
             // Code
             // 
             this.Code.CurrentLine = ((uint)(0u));
             this.Code.Dock = System.Windows.Forms.DockStyle.Fill;
             this.Code.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Code.Location = new System.Drawing.Point(0, 24);
+            this.Code.Location = new System.Drawing.Point(0, 60);
             this.Code.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Code.Name = "Code";
             this.Code.Offset = ((uint)(0u));
             this.Code.Project = null;
-            this.Code.Size = new System.Drawing.Size(800, 426);
-            this.Code.TabIndex = 1;
+            this.Code.Size = new System.Drawing.Size(800, 390);
+            this.Code.TabIndex = 3;
+            this.Code.Goto += new System.EventHandler<uint>(this.Code_Goto);
             this.Code.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
             // 
             // MainForm
@@ -132,6 +172,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.Code);
+            this.Controls.Add(this.ToolPanel);
             this.Controls.Add(this.TopMenu);
             this.KeyPreview = true;
             this.MainMenuStrip = this.TopMenu;
@@ -141,6 +182,7 @@
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
             this.TopMenu.ResumeLayout(false);
             this.TopMenu.PerformLayout();
+            this.ToolPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -158,6 +200,9 @@
         private System.Windows.Forms.OpenFileDialog OpenRomDialog;
         private System.Windows.Forms.OpenFileDialog OpenProjectDialog;
         private System.Windows.Forms.SaveFileDialog SaveProjectDialog;
+        private System.Windows.Forms.Panel ToolPanel;
+        private System.Windows.Forms.Button FwdBtn;
+        private System.Windows.Forms.Button BackBtn;
         private CodeDisplay Code;
     }
 }

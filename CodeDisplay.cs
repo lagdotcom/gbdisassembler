@@ -50,6 +50,8 @@ namespace GBDisassembler
             MouseWheel += CodeDisplay_MouseWheel;
         }
 
+        public event EventHandler<uint> Goto;
+
         public uint CurrentLine
         {
             get => currentLine;
@@ -136,6 +138,7 @@ namespace GBDisassembler
                 e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", f, br, x, y);
 
                 uint move = 1;
+                bool end = false;
                 if (project.Instructions.ContainsKey(o))
                 {
                     Instruction inst = project.Instructions[o];
@@ -143,6 +146,8 @@ namespace GBDisassembler
 
                     PaintInstruction(e.Graphics, inst.OpType, true, y);
                     if (inst.Operands != null) PaintOperands(e.Graphics, inst.Operands, y);
+
+                    end = inst.IsEnd;
                 }
                 else
                 {
@@ -152,6 +157,8 @@ namespace GBDisassembler
 
                 y += Font.Height;
                 lineHotspots.Add(new Rectangle(e.ClipRectangle.Left, sy, e.ClipRectangle.Width, y - sy), o);
+
+                if (end) y += Font.Height;
 
                 o += move;
             }
@@ -249,8 +256,7 @@ namespace GBDisassembler
         {
             if (e.Button == MouseButtons.Left && currentOp != null && currentOp.AbsoluteAddress.HasValue)
             {
-                CurrentLine = currentOp.AbsoluteAddress.Value;
-                Offset = CurrentLine;
+                Goto?.Invoke(this, currentOp.AbsoluteAddress.Value);
                 return;
             }
 

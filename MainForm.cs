@@ -15,9 +15,14 @@ namespace GBDisassembler
 
     public partial class MainForm : Form
     {
+        private History history;
+
         public MainForm()
         {
             InitializeComponent();
+
+            history = new History(20, BackBtn, FwdBtn);
+            history.Goto += History_Goto;
 
             ChangeMade += MainForm_ChangeMade;
         }
@@ -68,6 +73,8 @@ namespace GBDisassembler
             Project = null;
             CloseToolStripMenuItem.Enabled = false;
             SaveToolStripMenuItem.Enabled = false;
+            BackBtn.Enabled = false;
+            FwdBtn.Enabled = false;
             Code.Project = null;
             UpdateTitleBar();
 
@@ -100,7 +107,10 @@ namespace GBDisassembler
         {
             if (string.IsNullOrWhiteSpace(label))
             {
-                NamingDialog dlg = new NamingDialog();
+                NamingDialog dlg = new NamingDialog
+                {
+                    Text = $"Label ROM{new GBLib.Operand.BankedAddress(offset).ToString()}..."
+                };
                 if (Project.Labeller.Labels.ContainsKey(offset))
                     dlg.NameString = Project.Labeller.Labels[offset];
 
@@ -221,6 +231,20 @@ namespace GBDisassembler
                     Analyse(Code.CurrentLine);
                     return;
             }
+        }
+
+        private void History_Goto(object sender, uint loc)
+        {
+            Code.CurrentLine = loc;
+            Code.Offset = loc;
+        }
+
+        private void Code_Goto(object sender, uint loc)
+        {
+            history.Remember(Code.Offset);
+
+            History_Goto(this, loc);
+            history.Move(loc);
         }
     }
 }
