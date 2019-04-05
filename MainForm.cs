@@ -131,6 +131,31 @@ namespace GBDisassembler
             ChangeMade?.Invoke(this, null);
         }
 
+        public void NameAddress(uint address, string name = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                NamingDialog dlg = new NamingDialog
+                {
+                    Text = $"Label RAM:{address:X4}..."
+                };
+                if (Project.Namer.Names.ContainsKey(address))
+                    dlg.NameString = Project.Namer.Names[address];
+
+                if (dlg.ShowDialog() == DialogResult.Cancel)
+                    return;
+
+                name = dlg.NameString;
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+                Project.Namer.Names.Remove(address);
+            else
+                Project.Namer.Names[address] = name;
+
+            ChangeMade?.Invoke(this, null);
+        }
+
         public void Analyse(uint offset)
         {
             Project.Analyse(offset, true);
@@ -252,6 +277,14 @@ namespace GBDisassembler
                 case Keys.D:
                     e.Handled = true;
                     ForceData(Code.CurrentLine);
+                    return;
+
+                case Keys.L:
+                    if (Code.CurrentOp != null && Code.CurrentOp.AbsoluteAddress.HasValue)
+                    {
+                        e.Handled = true;
+                        NameAddress(Code.CurrentOp.AbsoluteAddress.Value);
+                    }
                     return;
 
                 case Keys.PageDown:

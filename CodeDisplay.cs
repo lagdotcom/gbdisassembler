@@ -71,6 +71,8 @@ namespace GBDisassembler
             }
         }
 
+        public IOperand CurrentOp => currentOp;
+
         public uint Offset
         {
             get => offset;
