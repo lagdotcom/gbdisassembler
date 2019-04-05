@@ -43,6 +43,7 @@ namespace GBDisassembler
             SaveToolStripMenuItem.Enabled = true;
             Code.Project = project;
             UpdateTitleBar();
+            UpdateLabels();
 
             ProjectLoaded?.Invoke(this, null);
             if (isNew) ChangeMade?.Invoke(this, null);
@@ -77,6 +78,7 @@ namespace GBDisassembler
             FwdBtn.Enabled = false;
             Code.Project = null;
             UpdateTitleBar();
+            LabelsBox.Items.Clear();
 
             ProjectClosed?.Invoke(this, null);
         }
@@ -125,6 +127,7 @@ namespace GBDisassembler
             else
                 Project.Labeller.Labels[offset] = label;
 
+            UpdateLabels();
             ChangeMade?.Invoke(this, null);
         }
 
@@ -149,6 +152,14 @@ namespace GBDisassembler
             }
 
             Text = $"GBDisassembler - {Path.GetFileName(FileName)}{(UnsavedChanges ? "*" : "")}";
+        }
+
+        protected void UpdateLabels()
+        {
+            LabelsBox.Items.Clear();
+
+            foreach (var pair in Project.Labeller.Labels.OrderBy(pair => pair.Key))
+                LabelsBox.Items.Add(new OffsetLabel(pair.Key, pair.Value));
         }
 
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -245,6 +256,26 @@ namespace GBDisassembler
 
             History_Goto(this, loc);
             history.Move(loc);
+        }
+
+        private void LabelsBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (LabelsBox.SelectedItem is OffsetLabel ol)
+                Code_Goto(this, ol.Offset);
+        }
+
+        private class OffsetLabel
+        {
+            public OffsetLabel(uint offset, string label)
+            {
+                Offset = offset;
+                Label = label;
+            }
+
+            public uint Offset;
+            public string Label;
+
+            public override string ToString() => Label;
         }
     }
 }

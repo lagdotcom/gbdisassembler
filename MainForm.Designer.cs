@@ -41,6 +41,7 @@
             this.ToolPanel = new System.Windows.Forms.Panel();
             this.FwdBtn = new System.Windows.Forms.Button();
             this.BackBtn = new System.Windows.Forms.Button();
+            this.LabelsBox = new System.Windows.Forms.ListBox();
             this.Code = new GBDisassembler.CodeDisplay();
             this.TopMenu.SuspendLayout();
             this.ToolPanel.SuspendLayout();
@@ -151,6 +152,16 @@
             this.BackBtn.Text = "<";
             this.BackBtn.UseVisualStyleBackColor = true;
             // 
+            // LabelsBox
+            // 
+            this.LabelsBox.Dock = System.Windows.Forms.DockStyle.Right;
+            this.LabelsBox.FormattingEnabled = true;
+            this.LabelsBox.Location = new System.Drawing.Point(680, 60);
+            this.LabelsBox.Name = "LabelsBox";
+            this.LabelsBox.Size = new System.Drawing.Size(120, 390);
+            this.LabelsBox.TabIndex = 4;
+            this.LabelsBox.SelectedIndexChanged += new System.EventHandler(this.LabelsBox_SelectedIndexChanged);
+            // 
             // Code
             // 
             this.Code.CurrentLine = ((uint)(0u));
@@ -161,8 +172,8 @@
             this.Code.Name = "Code";
             this.Code.Offset = ((uint)(0u));
             this.Code.Project = null;
-            this.Code.Size = new System.Drawing.Size(800, 390);
-            this.Code.TabIndex = 3;
+            this.Code.Size = new System.Drawing.Size(680, 390);
+            this.Code.TabIndex = 5;
             this.Code.Goto += new System.EventHandler<uint>(this.Code_Goto);
             this.Code.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
             // 
@@ -172,6 +183,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.Code);
+            this.Controls.Add(this.LabelsBox);
             this.Controls.Add(this.ToolPanel);
             this.Controls.Add(this.TopMenu);
             this.KeyPreview = true;
@@ -203,6 +215,7 @@
         private System.Windows.Forms.Panel ToolPanel;
         private System.Windows.Forms.Button FwdBtn;
         private System.Windows.Forms.Button BackBtn;
+        private System.Windows.Forms.ListBox LabelsBox;
         private CodeDisplay Code;
     }
 }
