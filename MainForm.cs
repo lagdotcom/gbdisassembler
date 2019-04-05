@@ -96,6 +96,34 @@ namespace GBDisassembler
             return true;
         }
 
+        public void LabelOffset(uint offset, string label = null)
+        {
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                NamingDialog dlg = new NamingDialog();
+                if (Project.Labeller.Labels.ContainsKey(offset))
+                    dlg.NameString = Project.Labeller.Labels[offset];
+
+                if (dlg.ShowDialog() == DialogResult.Cancel)
+                    return;
+
+                label = dlg.NameString;
+            }
+
+            if (string.IsNullOrWhiteSpace(label))
+                Project.Labeller.Labels.Remove(offset);
+            else
+                Project.Labeller.Labels[offset] = label;
+
+            ChangeMade?.Invoke(this, null);
+        }
+
+        public void Analyse(uint offset)
+        {
+            Project.Analyse(offset);
+            ChangeMade?.Invoke(this, null);
+        }
+
         protected void UpdateTitleBar()
         {
             if (Project == null)
@@ -147,6 +175,7 @@ namespace GBDisassembler
         {
             UnsavedChanges = true;
             UpdateTitleBar();
+            Code.Invalidate();
         }
 
         private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -172,6 +201,26 @@ namespace GBDisassembler
             }
 
             e.Cancel = !SaveBeforeClosing();
+        }
+        
+        private void MainForm_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (Project == null) return;
+
+            switch (e.KeyChar)
+            {
+                case 'n':
+                case 'N':
+                    e.Handled = true;
+                    LabelOffset(Code.CurrentLine);
+                    return;
+
+                case 'c':
+                case 'C':
+                    e.Handled = true;
+                    Analyse(Code.CurrentLine);
+                    return;
+            }
         }
     }
 }

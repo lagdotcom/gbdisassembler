@@ -18,20 +18,10 @@ namespace GBLib
             Labeller = new Labeller(this);
             Namer = new Namer(this);
             CPU = new LR35902(this);
-
-            Ports = new List<IPortHandler>
-            {
-                Labeller,
-                Namer,
-            };
-
-            foreach (Type portType in Assembly.GetExecutingAssembly().GetTypes().Where(a => typeof(IPort).IsAssignableFrom(a) && !a.IsAbstract))
-            {
-                IPort port = (IPort)Activator.CreateInstance(portType, this);
-                Ports.Add(port);
-            }
-
+            Ports = new List<IPortHandler>();
             Instructions = new Dictionary<uint, Instruction>();
+
+            SetupPorts();
         }
 
         public Disassembler(string filename) : this()
@@ -116,6 +106,7 @@ namespace GBLib
             using (var stream = File.OpenRead(filename))
                 instance = GetXmlSerializer().Deserialize<Disassembler>(new XmlReaderSettings { IgnoreWhitespace = false }, stream);
 
+            instance.SetupPorts();
             instance.AcquireROM();
             return instance;
         }
@@ -129,6 +120,19 @@ namespace GBLib
         public IPortHandler FindHandler(IOperand op)
         {
             return Ports.FirstOrDefault(h => h.Handles(op));
+        }
+
+        private void SetupPorts()
+        {
+            Ports.Clear();
+            Ports.Add(Labeller);
+            Ports.Add(Namer);
+
+            foreach (Type portType in Assembly.GetExecutingAssembly().GetTypes().Where(a => typeof(IPort).IsAssignableFrom(a) && !a.IsAbstract))
+            {
+                IPort port = (IPort)Activator.CreateInstance(portType, this);
+                Ports.Add(port);
+            }
         }
 
         private IPortHandler GetMBC(MemoryBankController mbc)

@@ -114,12 +114,17 @@
             // 
             // Code
             // 
+            this.Code.CurrentLine = ((uint)(0u));
             this.Code.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Code.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Code.Location = new System.Drawing.Point(0, 24);
+            this.Code.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Code.Name = "Code";
+            this.Code.Offset = ((uint)(0u));
             this.Code.Project = null;
             this.Code.Size = new System.Drawing.Size(800, 426);
             this.Code.TabIndex = 1;
+            this.Code.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
             // 
             // MainForm
             // 
@@ -128,10 +133,12 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.Code);
             this.Controls.Add(this.TopMenu);
+            this.KeyPreview = true;
             this.MainMenuStrip = this.TopMenu;
             this.Name = "MainForm";
             this.Text = "GBDisassembler";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
             this.TopMenu.ResumeLayout(false);
             this.TopMenu.PerformLayout();
             this.ResumeLayout(false);

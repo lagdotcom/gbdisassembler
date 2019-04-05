@@ -77,6 +77,7 @@ namespace GBDisassembler
             set
             {
                 project = value;
+                CurrentLine = 0;
                 Scrolly.Value = 0;
 
                 if (project == null)
