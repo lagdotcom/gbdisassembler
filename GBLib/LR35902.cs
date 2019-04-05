@@ -37,6 +37,14 @@ namespace GBLib
                 case OpCode.JR_r8:
                 case OpCode.RET:
                 case OpCode.RETI:
+                case OpCode.RST_00:
+                case OpCode.RST_08:
+                case OpCode.RST_10:
+                case OpCode.RST_18:
+                case OpCode.RST_20:
+                case OpCode.RST_28:
+                case OpCode.RST_30:
+                case OpCode.RST_38:
                     return true;
 
                 default: return false;

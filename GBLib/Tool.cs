@@ -24,12 +24,19 @@ namespace GBLib
         public static uint ReBank(uint current, uint loc)
         {
             BankedAddress c = new BankedAddress(current);
-            BankedAddress l = new BankedAddress(loc, c.Bank);
+            BankedAddress l = new BankedAddress(c.Bank.Value, loc);
 
             return l.AbsoluteAddress.Value;
         }
 
         public static int Clamp(this int value, int min, int max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        public static uint Clamp(this uint value, uint min, uint max)
         {
             if (value < min) return min;
             if (value > max) return max;

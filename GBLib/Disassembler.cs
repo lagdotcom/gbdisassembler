@@ -71,8 +71,9 @@ namespace GBLib
             Analyse(0x100);
         }
 
-        public void Analyse(uint start)
+        public void Analyse(uint start, bool force = false)
         {
+            HashSet<uint> visited = new HashSet<uint>();
             Queue<uint> locations = new Queue<uint>();
             locations.Enqueue(start);
 
@@ -83,12 +84,18 @@ namespace GBLib
 
                 while (true)
                 {
-                    if (Instructions.ContainsKey(loc)) break;
+                    bool skip = false;
+
+                    if (force) skip = visited.Contains(loc);
+                    else skip = Instructions.ContainsKey(loc);
+
+                    if (skip) break;
 
                     Instruction i = CPU.Decode(loc);
                     if (i == null) break;
 
                     Instructions[loc] = i;
+                    visited.Add(loc);
 
                     if (i.JumpLocation != null)
                         locations.Enqueue(i.JumpLocation.Value);

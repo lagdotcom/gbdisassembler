@@ -175,7 +175,7 @@
             this.Code.Size = new System.Drawing.Size(680, 390);
             this.Code.TabIndex = 5;
             this.Code.Goto += new System.EventHandler<uint>(this.Code_Goto);
-            this.Code.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
+            this.Code.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             // 
             // MainForm
             // 
@@ -191,7 +191,7 @@
             this.Name = "MainForm";
             this.Text = "GBDisassembler";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainForm_KeyPress);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.TopMenu.ResumeLayout(false);
             this.TopMenu.PerformLayout();
             this.ToolPanel.ResumeLayout(false);

@@ -18,10 +18,10 @@
             Offset = absolute % BankSize;
         }
 
-        public BankedAddress(uint absolute, uint bankOverride)
+        public BankedAddress(uint? bank, uint offset)
         {
-            Bank = bankOverride;
-            Offset = absolute % BankSize;
+            Bank = bank;
+            Offset = offset % BankSize;
         }
         
         public static BankedAddress Parse(string spec)
@@ -37,11 +37,10 @@
         public bool IsNumeric => true;
         public bool IsRegister => false;
 
-        public uint Bank;
+        public uint? Bank;
         public uint Offset;
         public uint? AbsoluteAddress => Bank * BankSize + Offset;
 
-        public override string ToString() => $"{Bank:X2}:{Offset:X4}";
-        public string OverrideBankString(uint bank) => $"{bank:X2}:{Offset:X4}";
+        public override string ToString() => Bank.HasValue ? $"{Bank:X2}:{Offset:X4}" : $"??:{Offset:X4}";
     }
 }

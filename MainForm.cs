@@ -133,8 +133,17 @@ namespace GBDisassembler
 
         public void Analyse(uint offset)
         {
-            Project.Analyse(offset);
+            Project.Analyse(offset, true);
             ChangeMade?.Invoke(this, null);
+        }
+
+        public void ForceData(uint offset)
+        {
+            if (Project.Instructions.ContainsKey(offset))
+            {
+                Project.Instructions.Remove(offset);
+                ChangeMade?.Invoke(this, null);
+            }
         }
 
         protected void UpdateTitleBar()
@@ -223,27 +232,50 @@ namespace GBDisassembler
 
             e.Cancel = !SaveBeforeClosing();
         }
-        
-        private void MainForm_KeyPress(object sender, KeyPressEventArgs e)
+
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             if (Project == null) return;
 
-            switch (e.KeyChar)
+            switch (e.KeyCode)
             {
-                case 'n':
-                case 'N':
+                case Keys.N:
                     e.Handled = true;
                     LabelOffset(Code.CurrentLine);
                     return;
 
-                case 'c':
-                case 'C':
+                case Keys.C:
                     e.Handled = true;
                     Analyse(Code.CurrentLine);
                     return;
+
+                case Keys.D:
+                    e.Handled = true;
+                    ForceData(Code.CurrentLine);
+                    return;
+
+                case Keys.PageDown:
+                    e.Handled = true;
+                    Code.Offset += CodeDisplay.BigJump;
+                    return;
+
+                case Keys.PageUp:
+                    e.Handled = true;
+                    Code.Offset -= CodeDisplay.BigJump;
+                    return;
+
+                case Keys.Down:
+                    e.Handled = true;
+                    Code.MoveDown();
+                    return;
+
+                case Keys.Up:
+                    e.Handled = true;
+                    Code.MoveUp();
+                    return;
             }
         }
-
+        
         private void History_Goto(object sender, uint loc)
         {
             Code.CurrentLine = loc;

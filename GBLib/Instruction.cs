@@ -51,13 +51,7 @@ namespace GBLib
             IPortHandler handler = Parent.FindHandler(op);
             if (handler != null)
                 return handler.Identify(op.AbsoluteAddress.Value);
-
-            if (op is BankedAddress && Address.Bank > 1)
-            {
-                BankedAddress ba = op as BankedAddress;
-                if (ba.Bank == 1) return ba.OverrideBankString(Address.Bank);
-            }
-
+            
             return op.ToString();
         }
 
@@ -1152,11 +1146,27 @@ namespace GBLib
             }
         }
 
+        private IOperand OpJ(uint i)
+        {
+            if (i < 0x8000)
+            {
+                if (i >= 0x4000)
+                {
+                    if (Location < 0x4000) return new BankedAddress(null, i);   // unknown destination bank
+                    return new BankedAddress(Location / 0x4000, i);
+                }
+
+                return new BankedAddress(i);
+            }
+
+            return new Address(i);
+        }
+
         private static IOperand[] Ops(params IOperand[] parts) => parts;
         private static Address OpA(uint i) => new Address(i);
         private static IOperand OpAI(uint i) => new IndirectAddress(i);
         private static IOperand OpB(byte b) => new ByteValue(b);
-        private static IOperand OpJ(uint i) => i < 0x8000 ? (IOperand)new BankedAddress(i) : new Address(i);
+
         private static IOperand OpP(int n) => new Plain(n);
         private static IOperand OpS(byte b) => new StackOffset(b);
         private Address OpA16 => OpA(Op16);

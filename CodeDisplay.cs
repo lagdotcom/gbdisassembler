@@ -14,6 +14,8 @@ namespace GBDisassembler
 
     public partial class CodeDisplay : UserControl
     {
+        public const int BigJump = 0x40;
+
         const int Main = 100;
         const int Operands = Main + 40;
         private uint offset = 0;
@@ -21,6 +23,7 @@ namespace GBDisassembler
         private IOperand currentOp = null;
         private Dictionary<Rectangle, uint> lineHotspots;
         private Dictionary<Rectangle, IOperand> opHovers;
+        private List<uint> lineNumbers;
         private Disassembler project;
 
         private Font hoverFont;
@@ -44,7 +47,10 @@ namespace GBDisassembler
 
             lineHotspots = new Dictionary<Rectangle, uint>();
             opHovers = new Dictionary<Rectangle, IOperand>();
+            lineNumbers = new List<uint>();
             hoverFont = new Font(Font, FontStyle.Underline);
+
+            Scrolly.LargeChange = BigJump;
 
             Disposed += CodeDisplay_Disposed;
             MouseWheel += CodeDisplay_MouseWheel;
@@ -52,12 +58,15 @@ namespace GBDisassembler
 
         public event EventHandler<uint> Goto;
 
+        public uint Minimum => 0;
+        public uint Maximum => project != null ? (uint)project.ROM.Length : 0;
+
         public uint CurrentLine
         {
             get => currentLine;
             set
             {
-                currentLine = value;
+                currentLine = value.Clamp(Minimum, Maximum);
                 Invalidate();
             }
         }
@@ -67,7 +76,7 @@ namespace GBDisassembler
             get => offset;
             set
             {
-                offset = value;
+                offset = value.Clamp(Minimum, Maximum);
                 Scrolly.Value = (int)offset;
                 Invalidate();
             }
@@ -86,12 +95,48 @@ namespace GBDisassembler
                     Scrolly.Visible = false;
                 else
                 {
-                    Scrolly.Maximum = project.ROM.Length;
+                    Scrolly.Maximum = (int)Maximum;
                     Scrolly.Visible = true;
                 }
 
                 Invalidate();
             }
+        }
+
+        public void MoveUp()
+        {
+            if (!lineNumbers.Contains(CurrentLine))
+            {
+                Offset = CurrentLine - 0x10;
+                return;
+            }
+
+            int index = lineNumbers.IndexOf(CurrentLine);
+            if (index == 0)
+            {
+                Offset = CurrentLine - 0x10;
+                return;
+            }
+
+            CurrentLine = lineNumbers[index - 1];
+        }
+
+        public void MoveDown()
+        {
+            if (!lineNumbers.Contains(CurrentLine))
+            {
+                Offset = CurrentLine - 0x10;
+                return;
+            }
+
+            int index = lineNumbers.IndexOf(CurrentLine);
+            if (index == lineNumbers.Count - 1)
+            {
+                Offset = CurrentLine - 0x10;
+                return;
+            }
+
+            CurrentLine = lineNumbers[index + 1];
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -104,6 +149,7 @@ namespace GBDisassembler
 
             lineHotspots.Clear();
             opHovers.Clear();
+            lineNumbers.Clear();
 
             e.Graphics.FillRectangle(Brushes.White, e.ClipRectangle);
             int x = Padding.Left;
@@ -113,6 +159,7 @@ namespace GBDisassembler
             while (y < e.ClipRectangle.Bottom && o < project.ROM.Length)
             {
                 int sy = y;
+                lineNumbers.Add(o);
 
                 if (project.Labeller.Labels.ContainsKey(o))
                 {
@@ -244,7 +291,7 @@ namespace GBDisassembler
         private void CodeDisplay_MouseWheel(object sender, MouseEventArgs e)
         {
             int change = e.Delta > 0 ? Scrolly.LargeChange : -Scrolly.LargeChange;
-            Scrolly.Value = (Scrolly.Value - change).Clamp(Scrolly.Minimum, Scrolly.Maximum);
+            Scrolly.Value = (Scrolly.Value - change).Clamp(0, Scrolly.Maximum);
         }
 
         private void Scrolly_ValueChanged(object sender, EventArgs e)
