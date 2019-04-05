@@ -172,6 +172,27 @@ namespace GBDisassembler
             }
         }
 
+        public void FindReferences(uint offset)
+        {
+            var references = Project.Instructions.Where(pair => pair.Value.Operands != null
+                && pair.Value.Operands.Any(o => o.AbsoluteAddress.HasValue && o.AbsoluteAddress.Value == offset));
+
+            if (references.Count() > 0)
+            {
+                ReferencesDialog dlg = new ReferencesDialog
+                {
+                    References = references.Select(pair => pair.Value)
+                };
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    history.Remember(Code.CurrentLine);
+                    history.Move(dlg.Address);
+                }
+            }
+            else MessageBox.Show("No references found.", "Warning", MessageBoxButtons.OK);
+        }
+
         protected void UpdateTitleBar()
         {
             if (Project == null)
@@ -288,6 +309,11 @@ namespace GBDisassembler
                     }
                     return;
 
+                case Keys.X:
+                    e.Handled = true;
+                    FindReferences(Code.CurrentLine);
+                    return;
+
                 case Keys.PageDown:
                     e.Handled = true;
                     Code.Offset += CodeDisplay.BigJump;
@@ -319,8 +345,6 @@ namespace GBDisassembler
         private void Code_Goto(object sender, uint loc)
         {
             history.Remember(Code.Offset);
-
-            History_Goto(this, loc);
             history.Move(loc);
         }
 

@@ -63,6 +63,8 @@ namespace GBDisassembler
 
             Position = locations.Count - 1;
             UpdateButtons();
+
+            Goto?.Invoke(this, Current);
         }
 
         private void UpdateButtons()
@@ -76,7 +78,7 @@ namespace GBDisassembler
             Position--;
             UpdateButtons();
 
-            Goto?.Invoke(this, locations[Position]);
+            Goto?.Invoke(this, Current);
         }
 
         private void ForwardButton_Click(object sender, EventArgs e)
@@ -84,7 +86,7 @@ namespace GBDisassembler
             Position++;
             UpdateButtons();
 
-            Goto?.Invoke(this, locations[Position]);
+            Goto?.Invoke(this, Current);
         }
     }
 }
