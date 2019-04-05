@@ -61,7 +61,8 @@ namespace GBDisassembler
                 FileName = SaveProjectDialog.FileName;
             }
 
-            Project.Save(FileName);
+            Serializer.SaveProject(FileName, Project);
+
             UnsavedChanges = false;
             UpdateTitleBar();
 
@@ -221,7 +222,7 @@ namespace GBDisassembler
             if (OpenProjectDialog.ShowDialog() == DialogResult.OK)
             {
                 FileName = OpenProjectDialog.FileName;
-                Disassembler project = Disassembler.Load(FileName);
+                Disassembler project = Serializer.LoadProject(FileName);
                 LoadProject(project);
             }
         }

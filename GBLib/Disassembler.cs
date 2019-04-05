@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
-using System.Xml.Serialization;
-using ExtendedXmlSerializer.Configuration;
-using ExtendedXmlSerializer.ExtensionModel.Xml;
 
 namespace GBLib
 {
@@ -14,7 +10,6 @@ namespace GBLib
     {
         public Disassembler()
         {
-            Id = Guid.NewGuid();
             Labeller = new Labeller(this);
             Namer = new Namer(this);
             CPU = new LR35902(this);
@@ -30,23 +25,11 @@ namespace GBLib
             AcquireROM();
         }
 
-        public Guid Id;
-
         public string Filename;
-
-        [XmlIgnore]
         public LR35902 CPU;
-
-        [XmlIgnore]
         public RomHeader Header;
-
-        [XmlIgnore]
         public List<IPortHandler> Ports;
-
-        [XmlIgnore]
         public byte[] ROM;
-
-        [XmlIgnore]
         public IPortHandler MBC;
 
         public Dictionary<uint, Instruction> Instructions;
@@ -106,24 +89,6 @@ namespace GBLib
             }
         }
 
-        public static Disassembler Load(string filename)
-        {
-            Disassembler instance;
-
-            using (var stream = File.OpenRead(filename))
-                instance = GetXmlSerializer().Deserialize<Disassembler>(new XmlReaderSettings { IgnoreWhitespace = false }, stream);
-
-            instance.SetupPorts();
-            instance.AcquireROM();
-            return instance;
-        }
-
-        public void Save(string filename)
-        {
-            using (var writer = XmlWriter.Create(filename, new XmlWriterSettings { Indent = true }))
-                GetXmlSerializer().Serialize(writer, this);
-        }
-
         public IPortHandler FindHandler(IOperand op)
         {
             return Ports.FirstOrDefault(h => h.Handles(op));
@@ -151,16 +116,8 @@ namespace GBLib
                 default: throw new NotImplementedException();
             }
         }
-
-        private static IExtendedXmlSerializer GetXmlSerializer()
-        {
-            return new ConfigurationContainer()
-                .UseOptimizedNamespaces()
-                .ConfigureType<Disassembler>().EnableReferences(d => d.Id)
-                .Create();
-        }
-
-        private void AcquireROM()
+        
+        public void AcquireROM()
         {
             using (var f = File.Open(Filename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
