@@ -11,6 +11,7 @@ using System.Windows.Forms;
 namespace GBDisassembler
 {
     using GBLib;
+    using GBLib.Operand;
     using System.IO;
 
     public partial class MainForm : Form
@@ -193,6 +194,21 @@ namespace GBDisassembler
             else MessageBox.Show("No references found.", "Warning", MessageBoxButtons.OK);
         }
 
+        public void ShowGoto(uint offset)
+        {
+            BankedAddress ba = new BankedAddress(offset);
+            GotoDialog dlg = new GotoDialog
+            {
+                Address = ba
+            };
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                history.Remember(Code.CurrentLine);
+                history.Move(dlg.Address.AbsoluteAddress.Value);
+            }
+        }
+
         protected void UpdateTitleBar()
         {
             if (Project == null)
@@ -312,6 +328,11 @@ namespace GBDisassembler
                 case Keys.X:
                     e.Handled = true;
                     FindReferences(Code.CurrentLine);
+                    return;
+
+                case Keys.G:
+                    e.Handled = true;
+                    ShowGoto(Code.CurrentLine);
                     return;
 
                 case Keys.PageDown:
