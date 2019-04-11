@@ -71,7 +71,9 @@
             this.Controls.Add(this.CancelBtn);
             this.Controls.Add(this.OKBtn);
             this.Controls.Add(this.AddressBox);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "GotoDialog";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Go to...";
             this.Shown += new System.EventHandler(this.GotoDialog_Shown);
             this.ResumeLayout(false);
