@@ -4,7 +4,7 @@
 
     public class BankedAddress : IOperand
     {
-        const uint BankSize = 0x4000;
+        public const uint BankSize = 0x4000;
 
         public BankedAddress()
         {
@@ -31,6 +31,20 @@
             return new BankedAddress { Bank = bank, Offset = offset };
         }
 
+        public static BankedAddress GuessFromContext(uint location, uint i)
+        {
+            if (i >= BankSize)
+            {
+                if (location < BankSize) return new BankedAddress(null, i);   // unknown destination bank
+                return new BankedAddress(location / BankSize, i);
+            }
+
+            return new BankedAddress(i);
+        }
+
+        public char TypeKey => 'B';
+        public uint? TypeValue => Value;
+
         public bool Read => false;
         public bool Write => false;
         public bool IsHex => true;
@@ -40,6 +54,7 @@
         public uint? Bank;
         public uint Offset;
         public uint? AbsoluteAddress => Bank * BankSize + Offset;
+        public uint Value => AbsoluteAddress ?? BankSize + Offset;
 
         public override string ToString() => Bank.HasValue ? $"{Bank:X2}:{Offset:X4}" : $"??:{Offset:X4}";
     }

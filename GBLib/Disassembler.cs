@@ -15,6 +15,7 @@ namespace GBLib
             CPU = new LR35902(this);
             Ports = new List<IPortHandler>();
             Comments = new Dictionary<uint, string>();
+            CustomOperands = new Dictionary<uint, CustomOperandList>();
             Instructions = new Dictionary<uint, Instruction>();
 
             SetupPorts();
@@ -34,6 +35,7 @@ namespace GBLib
         public IPortHandler MBC;
 
         public Dictionary<uint, string> Comments;
+        public Dictionary<uint, CustomOperandList> CustomOperands;
         public Dictionary<uint, Instruction> Instructions;
         public Labeller Labeller;
         public Namer Namer;
@@ -130,6 +132,17 @@ namespace GBLib
             Header = new RomHeader(Tool.Slice(ROM, 0x100, 0x150));
             MBC = GetMBC(Header.MBC);
             Ports.Insert(0, MBC);
+        }
+
+        public void AddCustomOperand(uint location, int index, IOperand operand)
+        {
+            if (!CustomOperands.ContainsKey(location))
+            {
+                CustomOperands[location] = new CustomOperandList();
+            }
+
+            Instructions[location].Operands[index] = operand;
+            CustomOperands[location][index] = operand;
         }
     }
 }

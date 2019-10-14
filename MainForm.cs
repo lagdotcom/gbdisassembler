@@ -387,22 +387,28 @@ namespace GBDisassembler
             }
         }
         
-        private void History_Goto(object sender, uint loc)
+        private void History_Goto(object sender, GotoEventArgs e)
         {
-            Code.CurrentLine = loc;
-            Code.Offset = loc;
+            Code.CurrentLine = e.Location;
+            Code.Offset = e.Location;
         }
 
-        private void Code_Goto(object sender, uint loc)
+        private void Code_Goto(object sender, GotoEventArgs e)
         {
             history.Remember(Code.Offset);
-            history.Move(loc);
+            history.Move(e.Location);
+        }
+
+        private void Code_Replace(object sender, ReplaceEventArgs e)
+        {
+            Project.AddCustomOperand(e.Location, e.Index, e.Operand);
+            ChangeMade?.Invoke(this, null);
         }
 
         private void LabelsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (LabelsBox.SelectedItem is OffsetLabel ol)
-                Code_Goto(this, ol.Offset);
+                Code_Goto(this, new GotoEventArgs(ol.Offset));
         }
 
         private class OffsetLabel
@@ -418,5 +424,6 @@ namespace GBDisassembler
 
             public override string ToString() => Label;
         }
+
     }
 }

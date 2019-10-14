@@ -1,25 +1,23 @@
 ﻿namespace GBLib.Operand
 {
-    public class IndirectAddress : IOperand
+    public class WordValue : IOperand
     {
-        public IndirectAddress(uint i = 0)
+        public WordValue(uint v = 0)
         {
-            Value = i;
+            Value = v;
         }
 
-        public char TypeKey => 'I';
+        public char TypeKey => 'w';
         public uint? TypeValue => Value;
 
         public uint Value { get; }
-        
-        // TODO
-        public uint? AbsoluteAddress => null;
+        public uint? AbsoluteAddress => Value;
         public bool Read => false;
         public bool Write => false;
         public bool IsHex => true;
         public bool IsNumeric => true;
         public bool IsRegister => false;
 
-        public override string ToString() => $"(${Value:X4})";
+        public override string ToString() => $"${Value:X4}";
     }
 }

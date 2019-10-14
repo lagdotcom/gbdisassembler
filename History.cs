@@ -9,7 +9,7 @@ namespace GBDisassembler
 {
     class History
     {
-        private List<uint> locations;
+        private readonly List<uint> locations;
 
         public History(int max, Button back, Button fwd)
         {
@@ -24,7 +24,7 @@ namespace GBDisassembler
             Clear();
         }
 
-        public event EventHandler<uint> Goto;
+        public event EventHandler<GotoEventArgs> Goto;
 
         public Button BackButton { get; private set; }
         public Button ForwardButton { get; private set; }
@@ -63,8 +63,7 @@ namespace GBDisassembler
 
             Position = locations.Count - 1;
             UpdateButtons();
-
-            Goto?.Invoke(this, Current);
+            FireEvent();
         }
 
         private void UpdateButtons()
@@ -77,16 +76,19 @@ namespace GBDisassembler
         {
             Position--;
             UpdateButtons();
-
-            Goto?.Invoke(this, Current);
+            FireEvent();
         }
 
         private void ForwardButton_Click(object sender, EventArgs e)
         {
             Position++;
             UpdateButtons();
+            FireEvent();
+        }
 
-            Goto?.Invoke(this, Current);
+        private void FireEvent()
+        {
+            Goto?.Invoke(this, new GotoEventArgs(Current));
         }
     }
 }

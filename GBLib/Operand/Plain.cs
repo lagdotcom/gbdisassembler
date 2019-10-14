@@ -1,14 +1,17 @@
 ﻿namespace GBLib.Operand
 {
-    class Plain : IOperand
+    public class Plain : IOperand
     {
-        public Plain(int i = 0)
+        public Plain(uint i = 0)
         {
             Value = i;
         }
 
-        public int Value;
+        public char TypeKey => 'p';
+        public uint? TypeValue => Value;
+
         public uint? AbsoluteAddress => null;
+        public uint Value { get; }
         public bool Read => false;
         public bool Write => false;
         public bool IsHex => false;

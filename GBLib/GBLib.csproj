@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomOperandList.cs" />
     <Compile Include="Labeller.cs" />
     <Compile Include="MBC2.cs" />
     <Compile Include="Namer.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="MemoryBankController.cs" />
     <Compile Include="OpCode.cs" />
     <Compile Include="Operand\Plain.cs" />
+    <Compile Include="Operand\WordValue.cs" />
     <Compile Include="Port\AbstractPort.cs" />
     <Compile Include="Port\BGP.cs" />
     <Compile Include="Port\BGPD.cs" />

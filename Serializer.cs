@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GBLib;
+using GBLib.Operand;
 
 namespace GBDisassembler
 {
@@ -15,6 +16,7 @@ namespace GBDisassembler
         const string NameMarker = "NAM:";
         const string LabelMarker = "LBL:";
         const string CommentMarker = "COM:";
+        const string CustomOperandMarker = "COP:";
 
         public static Disassembler LoadProject(string fileName)
         {
@@ -76,12 +78,42 @@ namespace GBDisassembler
                 string label = br.ReadString();
                 project.Comments[address] = label;
             }
+
+            ReadStatic(br, CustomOperandMarker);
+            count = br.ReadInt32();
+            for (i = 0; i < count; i++)
+            {
+                uint address = br.ReadUInt32();
+                int copCount = br.ReadInt32();
+                for (int j = 0; j < copCount; j++)
+                {
+                    int index = br.ReadInt32();
+                    project.AddCustomOperand(address, index, ReadOperand(br));
+                }
+            }
         }
 
         private static void ReadStatic(BinaryReader br, string source)
         {
             string check = new string(br.ReadChars(source.Length));
             if (check != source) throw new FormatException($"Expected: {source}, got {check}");
+        }
+
+        private static IOperand ReadOperand(BinaryReader br)
+        {
+            char key = br.ReadChar();
+
+            switch (key)
+            {
+                case 'A': return new Address(br.ReadUInt32());
+                case 'B': return new BankedAddress(br.ReadUInt32());
+                case 'b': return new ByteValue((byte)br.ReadUInt32());
+                case 'I': return new IndirectAddress(br.ReadUInt32());
+                case 'p': return new Plain(br.ReadUInt32());
+                case 's': return new StackOffset((byte)br.ReadUInt32());
+                case 'w': return new WordValue(br.ReadUInt32());
+                default: throw new InvalidDataException($"Cannot read Operand of type {key}");
+            }
         }
 
         private static void WriteProject(BinaryWriter bw, Disassembler project)
@@ -108,6 +140,11 @@ namespace GBDisassembler
             bw.Write(project.Comments.Count);
             foreach (var pair in project.Comments)
                 WriteNamedAddress(bw, pair.Key, pair.Value);
+
+            WriteStatic(bw, CustomOperandMarker);
+            bw.Write(project.CustomOperands.Count);
+            foreach (var pair in project.CustomOperands)
+                WriteCustomOperands(bw, pair.Key, pair.Value);
         }
 
         private static void WriteInstruction(BinaryWriter bw, uint address, Instruction inst)
@@ -119,6 +156,18 @@ namespace GBDisassembler
         {
             bw.Write(address);
             WriteString(bw, name);
+        }
+
+        private static void WriteCustomOperands(BinaryWriter bw, uint address, CustomOperandList ops)
+        {
+            bw.Write(address);
+            bw.Write(ops.Count);
+            foreach (var pair in ops)
+            {
+                bw.Write(pair.Key);
+                bw.Write(pair.Value.TypeKey);
+                if (pair.Value.TypeValue.HasValue) bw.Write(pair.Value.TypeValue.Value);
+            }
         }
 
         private static void WriteStatic(BinaryWriter bw, string source)

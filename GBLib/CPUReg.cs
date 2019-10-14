@@ -1,7 +1,11 @@
-﻿namespace GBLib
+﻿using System;
+
+namespace GBLib
 {
     class CPUReg : IOperand
     {
+        public static string[] RegNames = { "A", "B", "C", "D", "E", "H", "L", "AF", "BC", "DE", "HL", "SP", "($FF00+C)", "(BC)", "(DE)", "(HL)", "(HL-)", "(HL+)" };
+
         public static CPUReg A = new CPUReg("A");
         public static CPUReg B = new CPUReg("B");
         public static CPUReg C = new CPUReg("C");
@@ -27,8 +31,12 @@
             Name = name;
         }
 
+        public char TypeKey => 'r';
+        public uint? TypeValue => (uint)Array.IndexOf(RegNames, Name);
+
         public string Name;
         public uint? AbsoluteAddress => null;
+        public uint Value => 0;
         public bool Read => false;
         public bool Write => false;
         public bool IsHex => false;

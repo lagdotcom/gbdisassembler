@@ -1,13 +1,16 @@
 ﻿namespace GBLib.Operand
 {
-    class Address : IOperand
+    public class Address : IOperand
     {
         public Address(uint i = 0)
         {
             Value = i;
         }
 
-        public uint Value;
+        public char TypeKey => 'A';
+        public uint? TypeValue => Value;
+
+        public uint Value { get; }
         public bool Read { get; set; }
         public bool Write { get; set; }
         public bool IsHex => true;

@@ -11,6 +11,7 @@ using System.Windows.Forms;
 namespace GBDisassembler
 {
     using GBLib;
+    using GBLib.Operand;
 
     public partial class CodeDisplay : UserControl
     {
@@ -57,7 +58,9 @@ namespace GBDisassembler
             MouseWheel += CodeDisplay_MouseWheel;
         }
 
-        public event EventHandler<uint> Goto;
+        public event EventHandler<GotoEventArgs> Goto;
+
+        public event EventHandler<ReplaceEventArgs> Replace;
 
         public uint Minimum => 0;
         public uint Maximum => project != null ? (uint)project.ROM.Length : 0;
@@ -73,6 +76,9 @@ namespace GBDisassembler
         }
 
         public IOperand CurrentOp { get; private set; } = null;
+
+        public IOperand ContextOp { get; private set; } = null;
+        public uint ContextOpLine { get; private set; }
 
         public uint Offset
         {
@@ -301,6 +307,23 @@ namespace GBDisassembler
             }
         }
 
+        private void ReplaceOp(IOperand old, IOperand rep)
+        {
+            Instruction inst = project.Instructions[ContextOpLine];
+            for (var i = 0; i < inst.Operands.Length; i++)
+            {
+                IOperand op = inst.Operands[i];
+                if (op == old)
+                {
+                    Replace?.Invoke(this, new ReplaceEventArgs(ContextOpLine, i, rep));
+                    Invalidate();
+                    return;
+                }
+            }
+
+            MessageBox.Show($"Could not find operand ${old} to replace!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         private void CodeDisplay_Disposed(object sender, EventArgs e)
         {
             hoverFont.Dispose();
@@ -321,7 +344,15 @@ namespace GBDisassembler
         {
             if (e.Button == MouseButtons.Left && CurrentOp != null && CurrentOp.AbsoluteAddress.HasValue)
             {
-                Goto?.Invoke(this, CurrentOp.AbsoluteAddress.Value);
+                Goto?.Invoke(this, new GotoEventArgs(CurrentOp.AbsoluteAddress.Value));
+                return;
+            }
+
+            if (e.Button == MouseButtons.Right && CurrentOp != null)
+            {
+                ContextOp = CurrentOp;
+                ContextOpLine = lineHotspots.First(pair => pair.Key.Contains(e.Location)).Value;
+                OperandTypeMenu.Show(this, e.Location);
                 return;
             }
 
@@ -346,6 +377,26 @@ namespace GBDisassembler
             }
 
             Invalidate();
+        }
+
+        private void DecimalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReplaceOp(ContextOp, new Plain(ContextOp.Value));
+        }
+
+        private void HexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReplaceOp(ContextOp, new WordValue(ContextOp.Value));
+        }
+
+        private void RAMAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReplaceOp(ContextOp, new Address(ContextOp.Value));
+        }
+
+        private void ROMAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReplaceOp(ContextOp, BankedAddress.GuessFromContext(ContextOpLine, ContextOp.Value));
         }
     }
 }

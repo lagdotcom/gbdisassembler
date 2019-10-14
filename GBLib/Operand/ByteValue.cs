@@ -1,13 +1,16 @@
 ﻿namespace GBLib.Operand
 {
-    class ByteValue : IOperand
+    public class ByteValue : IOperand
     {
         public ByteValue(byte b = 0)
         {
             Value = b;
         }
 
-        public byte Value;
+        public char TypeKey => 'b';
+        public uint? TypeValue => Value;
+
+        public uint Value { get; }
         public uint? AbsoluteAddress => null;
         public bool Read => false;
         public bool Write => false;

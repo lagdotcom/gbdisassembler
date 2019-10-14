@@ -60,6 +60,7 @@
     <Compile Include="GotoDialog.Designer.cs">
       <DependentUpon>GotoDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GotoEventArgs.cs" />
     <Compile Include="History.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -81,6 +82,7 @@
     <Compile Include="ReferencesDialog.Designer.cs">
       <DependentUpon>ReferencesDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReplaceEventArgs.cs" />
     <Compile Include="Serializer.cs" />
     <EmbeddedResource Include="CodeDisplay.resx">
       <DependentUpon>CodeDisplay.cs</DependentUpon>
