@@ -18,9 +18,9 @@ namespace GBDisassembler
 
         const int Main = 100;
         const int Operands = Main + 40;
+        const int Comment = Operands + 200;
         private uint offset = 0;
         private uint currentLine = 0;
-        private IOperand currentOp = null;
         private Dictionary<Rectangle, uint> lineHotspots;
         private Dictionary<Rectangle, IOperand> opHovers;
         private List<uint> lineNumbers;
@@ -39,6 +39,7 @@ namespace GBDisassembler
         private Brush registerOpBrush = Brushes.Blue;
         private Brush addressOpBrush = Brushes.Red;
         private Brush identifiedOpBrush = Brushes.DarkOrange;
+        private Brush commentBrush = Brushes.Green;
 
         public CodeDisplay()
         {
@@ -71,7 +72,7 @@ namespace GBDisassembler
             }
         }
 
-        public IOperand CurrentOp => currentOp;
+        public IOperand CurrentOp { get; private set; } = null;
 
         public uint Offset
         {
@@ -178,7 +179,7 @@ namespace GBDisassembler
 
                 Font f = Font;
                 Brush br = offsetBrush;
-                if (currentOp != null && currentOp.AbsoluteAddress == o)
+                if (CurrentOp != null && CurrentOp.AbsoluteAddress == o)
                 {
                     f = hoverFont;
                     br = hoverOffsetBrush;
@@ -188,6 +189,7 @@ namespace GBDisassembler
 
                 uint move = 1;
                 bool end = false;
+                int yadd = Font.Height;
                 if (project.Instructions.ContainsKey(o))
                 {
                     Instruction inst = project.Instructions[o];
@@ -204,7 +206,12 @@ namespace GBDisassembler
                     e.Graphics.DrawString($"${project.ROM[o]:X2}", Font, hexOpBrush, x + Operands, y);
                 }
 
-                y += Font.Height;
+                if (project.Comments.ContainsKey(o))
+                {
+                    yadd = PaintComment(e.Graphics, project.Comments[o], y);
+                }
+
+                y += yadd;
                 lineHotspots.Add(new Rectangle(e.ClipRectangle.Left, sy, e.ClipRectangle.Width, y - sy), o);
 
                 if (end) y += Font.Height;
@@ -216,6 +223,15 @@ namespace GBDisassembler
         private void PaintInstruction(Graphics g, string op, bool real, int y)
         {
             g.DrawString(op, Font, real ? realOpBrush : fakeOpBrush, Padding.Left + Main, y);
+        }
+
+        private int PaintComment(Graphics g, string comment, int y)
+        {
+            // TODO: word wrap, ; prefix
+            g.DrawString(comment, Font, commentBrush, Padding.Left + Comment, y);
+
+            // TODO
+            return Font.Height;
         }
 
         private void PaintOperands(Graphics g, IOperand[] ops, int y)
@@ -237,7 +253,7 @@ namespace GBDisassembler
                     handled = true;
                 }
 
-                if (op == currentOp)
+                if (op == CurrentOp)
                 {
                     br = hoverOpBrush;
                     f = hoverFont;
@@ -303,9 +319,9 @@ namespace GBDisassembler
         
         private void CodeDisplay_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && currentOp != null && currentOp.AbsoluteAddress.HasValue)
+            if (e.Button == MouseButtons.Left && CurrentOp != null && CurrentOp.AbsoluteAddress.HasValue)
             {
-                Goto?.Invoke(this, currentOp.AbsoluteAddress.Value);
+                Goto?.Invoke(this, CurrentOp.AbsoluteAddress.Value);
                 return;
             }
 
@@ -320,12 +336,12 @@ namespace GBDisassembler
 
             if (rect.Key.Width > 0)
             {
-                currentOp = rect.Value;
+                CurrentOp = rect.Value;
                 Cursor = Cursors.Hand;
             }
             else
             {
-                currentOp = null;
+                CurrentOp = null;
                 Cursor = Cursors.Default;
             }
 

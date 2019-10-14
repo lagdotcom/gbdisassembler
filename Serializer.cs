@@ -14,6 +14,7 @@ namespace GBDisassembler
         const string InstructionMarker = "INS:";
         const string NameMarker = "NAM:";
         const string LabelMarker = "LBL:";
+        const string CommentMarker = "COM:";
 
         public static Disassembler LoadProject(string fileName)
         {
@@ -66,6 +67,15 @@ namespace GBDisassembler
                 string label = br.ReadString();
                 project.Labeller.Labels[address] = label;
             }
+
+            ReadStatic(br, CommentMarker);
+            count = br.ReadInt32();
+            for (i = 0; i < count; i++)
+            {
+                uint address = br.ReadUInt32();
+                string label = br.ReadString();
+                project.Comments[address] = label;
+            }
         }
 
         private static void ReadStatic(BinaryReader br, string source)
@@ -87,12 +97,17 @@ namespace GBDisassembler
             WriteStatic(bw, NameMarker);
             bw.Write(project.Namer.Names.Count);
             foreach (var pair in project.Namer.Names)
-                WriteName(bw, pair.Key, pair.Value);
+                WriteNamedAddress(bw, pair.Key, pair.Value);
 
             WriteStatic(bw, LabelMarker);
             bw.Write(project.Labeller.Labels.Count);
             foreach (var pair in project.Labeller.Labels)
-                WriteLabel(bw, pair.Key, pair.Value);
+                WriteNamedAddress(bw, pair.Key, pair.Value);
+
+            WriteStatic(bw, CommentMarker);
+            bw.Write(project.Comments.Count);
+            foreach (var pair in project.Comments)
+                WriteNamedAddress(bw, pair.Key, pair.Value);
         }
 
         private static void WriteInstruction(BinaryWriter bw, uint address, Instruction inst)
@@ -100,16 +115,10 @@ namespace GBDisassembler
             bw.Write(address);
         }
 
-        private static void WriteName(BinaryWriter bw, uint address, string name)
+        private static void WriteNamedAddress(BinaryWriter bw, uint address, string name)
         {
             bw.Write(address);
             WriteString(bw, name);
-        }
-
-        private static void WriteLabel(BinaryWriter bw, uint address, string label)
-        {
-            bw.Write(address);
-            WriteString(bw, label);
         }
 
         private static void WriteStatic(BinaryWriter bw, string source)

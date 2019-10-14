@@ -44,7 +44,7 @@ namespace GBLib
 
         public override string ToString() => $"{Address} | {OpType} {string.Join(",", OperandStrings)}".Trim();
 
-        public IEnumerable<string> OperandStrings => Operands != null ? Operands.Select(op => ImproveOperand(op)) : new string[0];
+        public IEnumerable<string> OperandStrings => Operands != null ? Operands.Select(op => ImproveOperand(op)) : Array.Empty<string>();
 
         private string ImproveOperand(IOperand op)
         {
@@ -1148,18 +1148,13 @@ namespace GBLib
 
         private IOperand OpJ(uint i)
         {
-            if (i < 0x8000)
+            if (i >= 0x4000)
             {
-                if (i >= 0x4000)
-                {
-                    if (Location < 0x4000) return new BankedAddress(null, i);   // unknown destination bank
-                    return new BankedAddress(Location / 0x4000, i);
-                }
-
-                return new BankedAddress(i);
+                if (Location < 0x4000) return new BankedAddress(null, i);   // unknown destination bank
+                return new BankedAddress(Location / 0x4000, i);
             }
 
-            return new Address(i);
+            return new BankedAddress(i);
         }
 
         private static IOperand[] Ops(params IOperand[] parts) => parts;

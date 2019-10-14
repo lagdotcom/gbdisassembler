@@ -14,6 +14,7 @@ namespace GBLib
             Namer = new Namer(this);
             CPU = new LR35902(this);
             Ports = new List<IPortHandler>();
+            Comments = new Dictionary<uint, string>();
             Instructions = new Dictionary<uint, Instruction>();
 
             SetupPorts();
@@ -32,6 +33,7 @@ namespace GBLib
         public byte[] ROM;
         public IPortHandler MBC;
 
+        public Dictionary<uint, string> Comments;
         public Dictionary<uint, Instruction> Instructions;
         public Labeller Labeller;
         public Namer Namer;
@@ -67,7 +69,7 @@ namespace GBLib
 
                 while (true)
                 {
-                    bool skip = false;
+                    bool skip;
 
                     if (force) skip = visited.Contains(loc);
                     else skip = Instructions.ContainsKey(loc);

@@ -113,7 +113,7 @@ namespace GBDisassembler
             {
                 NamingDialog dlg = new NamingDialog
                 {
-                    Text = $"Label ROM{new GBLib.Operand.BankedAddress(offset).ToString()}..."
+                    Text = $"Label ROM{new BankedAddress(offset).ToString()}..."
                 };
                 if (Project.Labeller.Labels.ContainsKey(offset))
                     dlg.NameString = Project.Labeller.Labels[offset];
@@ -130,6 +130,31 @@ namespace GBDisassembler
                 Project.Labeller.Labels[offset] = label;
 
             UpdateLabels();
+            ChangeMade?.Invoke(this, null);
+        }
+
+        public void CommentOffset(uint offset, string label = null)
+        {
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                NamingDialog dlg = new NamingDialog
+                {
+                    Text = $"Comment ROM{new BankedAddress(offset).ToString()}..."
+                };
+                if (Project.Comments.ContainsKey(offset))
+                    dlg.NameString = Project.Comments[offset];
+
+                if (dlg.ShowDialog() == DialogResult.Cancel)
+                    return;
+
+                label = dlg.NameString;
+            }
+
+            if (string.IsNullOrWhiteSpace(label))
+                Project.Comments.Remove(offset);
+            else
+                Project.Comments[offset] = label;
+
             ChangeMade?.Invoke(this, null);
         }
 
@@ -305,6 +330,11 @@ namespace GBDisassembler
                 case Keys.N:
                     e.Handled = true;
                     LabelOffset(Code.CurrentLine);
+                    return;
+
+                case Keys.OemSemicolon:
+                    e.Handled = true;
+                    CommentOffset(Code.CurrentLine);
                     return;
 
                 case Keys.C:
