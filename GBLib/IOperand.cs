@@ -6,6 +6,7 @@
         uint Value { get; }
         bool Read { get; }
         bool Write { get; }
+        bool IsAddress { get; }
         bool IsNumeric { get; }
         bool IsHex { get; }
         bool IsRegister { get; }

@@ -289,7 +289,7 @@ namespace GBDisassembler
 
                 Rectangle r = new Rectangle(x, y, size.Width, size.Height);
 
-                if (op.AbsoluteAddress.HasValue)
+                if (op.IsNumeric)
                     opHovers[r] = op;
 
                 g.DrawString(s, f, br, x, y);
@@ -324,6 +324,16 @@ namespace GBDisassembler
             MessageBox.Show($"Could not find operand ${old} to replace!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+        private void ShowOperandTypeContext(Point location)
+        {
+            ContextOp = CurrentOp;
+            ContextOpLine = lineHotspots.First(pair => pair.Key.Contains(location)).Value;
+
+            forceROMBankToolStripMenuItem.Enabled = ContextOp.IsAddress;
+
+            OperandTypeMenu.Show(this, location);
+        }
+
         private void CodeDisplay_Disposed(object sender, EventArgs e)
         {
             hoverFont.Dispose();
@@ -350,9 +360,7 @@ namespace GBDisassembler
 
             if (e.Button == MouseButtons.Right && CurrentOp != null)
             {
-                ContextOp = CurrentOp;
-                ContextOpLine = lineHotspots.First(pair => pair.Key.Contains(e.Location)).Value;
-                OperandTypeMenu.Show(this, e.Location);
+                ShowOperandTypeContext(e.Location);
                 return;
             }
 
@@ -397,6 +405,21 @@ namespace GBDisassembler
         private void ROMAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ReplaceOp(ContextOp, BankedAddress.GuessFromContext(ContextOpLine, ContextOp.Value));
+        }
+
+        private void ForceROMBankToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            uint? initial = ContextOp.AbsoluteAddress;
+            BankDialog dialog = new BankDialog
+            {
+                Bank = (uint)(initial.HasValue ? initial / BankedAddress.BankSize : 0),
+                Max = (int)(project.Header.ROM / BankedAddress.BankSize)
+            };
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                ReplaceOp(ContextOp, new BankedAddress(dialog.Bank, ContextOp.Value));
+            }
         }
     }
 }

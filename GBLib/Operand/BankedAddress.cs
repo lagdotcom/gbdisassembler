@@ -47,6 +47,7 @@
 
         public bool Read => false;
         public bool Write => false;
+        public bool IsAddress => true;
         public bool IsHex => true;
         public bool IsNumeric => true;
         public bool IsRegister => false;

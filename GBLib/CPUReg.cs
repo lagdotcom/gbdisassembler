@@ -39,6 +39,7 @@ namespace GBLib
         public uint Value => 0;
         public bool Read => false;
         public bool Write => false;
+        public bool IsAddress => false;
         public bool IsHex => false;
         public bool IsNumeric => false;
         public bool IsRegister => true;

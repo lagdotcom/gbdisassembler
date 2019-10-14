@@ -35,6 +35,7 @@
             this.decimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ramAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.romAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.forceROMBankToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OperandTypeMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -54,9 +55,10 @@
             this.hexToolStripMenuItem,
             this.decimalToolStripMenuItem,
             this.ramAddressToolStripMenuItem,
-            this.romAddressToolStripMenuItem});
+            this.romAddressToolStripMenuItem,
+            this.forceROMBankToolStripMenuItem});
             this.OperandTypeMenu.Name = "OperandContextMenu";
-            this.OperandTypeMenu.Size = new System.Drawing.Size(181, 114);
+            this.OperandTypeMenu.Size = new System.Drawing.Size(181, 136);
             // 
             // hexToolStripMenuItem
             // 
@@ -86,6 +88,13 @@
             this.romAddressToolStripMenuItem.Text = "R&OM Address";
             this.romAddressToolStripMenuItem.Click += new System.EventHandler(this.ROMAddressToolStripMenuItem_Click);
             // 
+            // forceROMBankToolStripMenuItem
+            // 
+            this.forceROMBankToolStripMenuItem.Name = "forceROMBankToolStripMenuItem";
+            this.forceROMBankToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.forceROMBankToolStripMenuItem.Text = "&Force ROM bank...";
+            this.forceROMBankToolStripMenuItem.Click += new System.EventHandler(this.ForceROMBankToolStripMenuItem_Click);
+            // 
             // CodeDisplay
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 13F);
@@ -109,5 +118,6 @@
         private System.Windows.Forms.ToolStripMenuItem decimalToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ramAddressToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem romAddressToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem forceROMBankToolStripMenuItem;
     }
 }

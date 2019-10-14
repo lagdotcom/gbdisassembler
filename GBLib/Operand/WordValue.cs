@@ -14,6 +14,7 @@
         public uint? AbsoluteAddress => Value;
         public bool Read => false;
         public bool Write => false;
+        public bool IsAddress => true; // well,
         public bool IsHex => true;
         public bool IsNumeric => true;
         public bool IsRegister => false;

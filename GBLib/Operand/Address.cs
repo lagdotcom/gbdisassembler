@@ -13,6 +13,7 @@
         public uint Value { get; }
         public bool Read { get; set; }
         public bool Write { get; set; }
+        public bool IsAddress => true;
         public bool IsHex => true;
         public bool IsNumeric => true;
         public bool IsRegister => false;

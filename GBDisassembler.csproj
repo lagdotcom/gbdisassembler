@@ -48,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BankDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BankDialog.Designer.cs">
+      <DependentUpon>BankDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="CodeDisplay.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -84,6 +90,9 @@
     </Compile>
     <Compile Include="ReplaceEventArgs.cs" />
     <Compile Include="Serializer.cs" />
+    <EmbeddedResource Include="BankDialog.resx">
+      <DependentUpon>BankDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="CodeDisplay.resx">
       <DependentUpon>CodeDisplay.cs</DependentUpon>
     </EmbeddedResource>
