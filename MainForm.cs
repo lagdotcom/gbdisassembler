@@ -207,7 +207,7 @@ namespace GBDisassembler
             {
                 ReferencesDialog dlg = new ReferencesDialog
                 {
-                    References = references.Select(pair => pair.Value)
+                    References = references.Select(pair => pair.Value).OrderBy(inst => inst.Location)
                 };
 
                 if (dlg.ShowDialog() == DialogResult.OK)
@@ -405,6 +405,12 @@ namespace GBDisassembler
             ChangeMade?.Invoke(this, null);
         }
 
+        private void Code_Data(object sender, DataEventArgs e)
+        {
+            Project.DataTypes[e.Location] = e.Type;
+            ChangeMade?.Invoke(this, null);
+        }
+
         private void LabelsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (LabelsBox.SelectedItem is OffsetLabel ol)
@@ -424,6 +430,5 @@ namespace GBDisassembler
 
             public override string ToString() => Label;
         }
-
     }
 }

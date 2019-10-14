@@ -175,6 +175,7 @@
             this.Code.Project = null;
             this.Code.Size = new System.Drawing.Size(680, 390);
             this.Code.TabIndex = 5;
+            this.Code.Data += new System.EventHandler<GBDisassembler.DataEventArgs>(this.Code_Data);
             this.Code.Goto += new System.EventHandler<GBDisassembler.GotoEventArgs>(this.Code_Goto);
             this.Code.Replace += new System.EventHandler<GBDisassembler.ReplaceEventArgs>(this.Code_Replace);
             this.Code.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);

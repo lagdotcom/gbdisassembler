@@ -31,12 +31,18 @@
             this.components = new System.ComponentModel.Container();
             this.Scrolly = new System.Windows.Forms.VScrollBar();
             this.OperandTypeMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.hexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.decimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ramAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.romAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.forceROMBankToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetOperandHex = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetOperandDecimal = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetOperandRAM = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetOperandROM = new System.Windows.Forms.ToolStripMenuItem();
+            this.ForceOperandBank = new System.Windows.Forms.ToolStripMenuItem();
+            this.DataTypeMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.SetDataByte = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetDataWord = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetDataROM = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetDataRAM = new System.Windows.Forms.ToolStripMenuItem();
             this.OperandTypeMenu.SuspendLayout();
+            this.DataTypeMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // Scrolly
@@ -52,48 +58,86 @@
             // OperandTypeMenu
             // 
             this.OperandTypeMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.hexToolStripMenuItem,
-            this.decimalToolStripMenuItem,
-            this.ramAddressToolStripMenuItem,
-            this.romAddressToolStripMenuItem,
-            this.forceROMBankToolStripMenuItem});
+            this.SetOperandHex,
+            this.SetOperandDecimal,
+            this.SetOperandRAM,
+            this.SetOperandROM,
+            this.ForceOperandBank});
             this.OperandTypeMenu.Name = "OperandContextMenu";
-            this.OperandTypeMenu.Size = new System.Drawing.Size(181, 136);
+            this.OperandTypeMenu.Size = new System.Drawing.Size(172, 114);
             // 
-            // hexToolStripMenuItem
+            // SetOperandHex
             // 
-            this.hexToolStripMenuItem.Name = "hexToolStripMenuItem";
-            this.hexToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.hexToolStripMenuItem.Text = "&Hex";
-            this.hexToolStripMenuItem.Click += new System.EventHandler(this.HexToolStripMenuItem_Click);
+            this.SetOperandHex.Name = "SetOperandHex";
+            this.SetOperandHex.Size = new System.Drawing.Size(171, 22);
+            this.SetOperandHex.Text = "&Hex";
+            this.SetOperandHex.Click += new System.EventHandler(this.SetOperandHex_Click);
             // 
-            // decimalToolStripMenuItem
+            // SetOperandDecimal
             // 
-            this.decimalToolStripMenuItem.Name = "decimalToolStripMenuItem";
-            this.decimalToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.decimalToolStripMenuItem.Text = "&Decimal";
-            this.decimalToolStripMenuItem.Click += new System.EventHandler(this.DecimalToolStripMenuItem_Click);
+            this.SetOperandDecimal.Name = "SetOperandDecimal";
+            this.SetOperandDecimal.Size = new System.Drawing.Size(171, 22);
+            this.SetOperandDecimal.Text = "&Decimal";
+            this.SetOperandDecimal.Click += new System.EventHandler(this.SetOperandDecimal_Click);
             // 
-            // ramAddressToolStripMenuItem
+            // SetOperandRAM
             // 
-            this.ramAddressToolStripMenuItem.Name = "ramAddressToolStripMenuItem";
-            this.ramAddressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.ramAddressToolStripMenuItem.Text = "R&AM Address";
-            this.ramAddressToolStripMenuItem.Click += new System.EventHandler(this.RAMAddressToolStripMenuItem_Click);
+            this.SetOperandRAM.Name = "SetOperandRAM";
+            this.SetOperandRAM.Size = new System.Drawing.Size(171, 22);
+            this.SetOperandRAM.Text = "R&AM Address";
+            this.SetOperandRAM.Click += new System.EventHandler(this.SetOperandRAM_Click);
             // 
-            // romAddressToolStripMenuItem
+            // SetOperandROM
             // 
-            this.romAddressToolStripMenuItem.Name = "romAddressToolStripMenuItem";
-            this.romAddressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.romAddressToolStripMenuItem.Text = "R&OM Address";
-            this.romAddressToolStripMenuItem.Click += new System.EventHandler(this.ROMAddressToolStripMenuItem_Click);
+            this.SetOperandROM.Name = "SetOperandROM";
+            this.SetOperandROM.Size = new System.Drawing.Size(171, 22);
+            this.SetOperandROM.Text = "R&OM Address";
+            this.SetOperandROM.Click += new System.EventHandler(this.SetOperandROM_Click);
             // 
-            // forceROMBankToolStripMenuItem
+            // ForceOperandBank
             // 
-            this.forceROMBankToolStripMenuItem.Name = "forceROMBankToolStripMenuItem";
-            this.forceROMBankToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.forceROMBankToolStripMenuItem.Text = "&Force ROM bank...";
-            this.forceROMBankToolStripMenuItem.Click += new System.EventHandler(this.ForceROMBankToolStripMenuItem_Click);
+            this.ForceOperandBank.Name = "ForceOperandBank";
+            this.ForceOperandBank.Size = new System.Drawing.Size(171, 22);
+            this.ForceOperandBank.Text = "&Force ROM bank...";
+            this.ForceOperandBank.Click += new System.EventHandler(this.ForceOperandBank_Click);
+            // 
+            // DataTypeMenu
+            // 
+            this.DataTypeMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SetDataByte,
+            this.SetDataWord,
+            this.SetDataROM,
+            this.SetDataRAM});
+            this.DataTypeMenu.Name = "DataTypeMenu";
+            this.DataTypeMenu.Size = new System.Drawing.Size(181, 114);
+            // 
+            // SetDataByte
+            // 
+            this.SetDataByte.Name = "SetDataByte";
+            this.SetDataByte.Size = new System.Drawing.Size(180, 22);
+            this.SetDataByte.Text = "&Byte";
+            this.SetDataByte.Click += new System.EventHandler(this.SetDataByte_Click);
+            // 
+            // SetDataWord
+            // 
+            this.SetDataWord.Name = "SetDataWord";
+            this.SetDataWord.Size = new System.Drawing.Size(180, 22);
+            this.SetDataWord.Text = "&Word";
+            this.SetDataWord.Click += new System.EventHandler(this.SetDataWord_Click);
+            // 
+            // SetDataROM
+            // 
+            this.SetDataROM.Name = "SetDataROM";
+            this.SetDataROM.Size = new System.Drawing.Size(180, 22);
+            this.SetDataROM.Text = "R&OM Address";
+            this.SetDataROM.Click += new System.EventHandler(this.SetDataROM_Click);
+            // 
+            // SetDataRAM
+            // 
+            this.SetDataRAM.Name = "SetDataRAM";
+            this.SetDataRAM.Size = new System.Drawing.Size(180, 22);
+            this.SetDataRAM.Text = "R&AM Address";
+            this.SetDataRAM.Click += new System.EventHandler(this.SetDataRAM_Click);
             // 
             // CodeDisplay
             // 
@@ -106,6 +150,7 @@
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CodeDisplay_MouseClick);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CodeDisplay_MouseMove);
             this.OperandTypeMenu.ResumeLayout(false);
+            this.DataTypeMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -114,10 +159,15 @@
 
         private System.Windows.Forms.VScrollBar Scrolly;
         private System.Windows.Forms.ContextMenuStrip OperandTypeMenu;
-        private System.Windows.Forms.ToolStripMenuItem hexToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem decimalToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ramAddressToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem romAddressToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem forceROMBankToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SetOperandHex;
+        private System.Windows.Forms.ToolStripMenuItem SetOperandDecimal;
+        private System.Windows.Forms.ToolStripMenuItem SetOperandRAM;
+        private System.Windows.Forms.ToolStripMenuItem SetOperandROM;
+        private System.Windows.Forms.ToolStripMenuItem ForceOperandBank;
+        private System.Windows.Forms.ContextMenuStrip DataTypeMenu;
+        private System.Windows.Forms.ToolStripMenuItem SetDataByte;
+        private System.Windows.Forms.ToolStripMenuItem SetDataWord;
+        private System.Windows.Forms.ToolStripMenuItem SetDataROM;
+        private System.Windows.Forms.ToolStripMenuItem SetDataRAM;
     }
 }

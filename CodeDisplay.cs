@@ -58,6 +58,8 @@ namespace GBDisassembler
             MouseWheel += CodeDisplay_MouseWheel;
         }
 
+        public event EventHandler<DataEventArgs> Data;
+
         public event EventHandler<GotoEventArgs> Goto;
 
         public event EventHandler<ReplaceEventArgs> Replace;
@@ -77,6 +79,7 @@ namespace GBDisassembler
 
         public IOperand CurrentOp { get; private set; } = null;
 
+        public uint ContextLine { get; private set; }
         public IOperand ContextOp { get; private set; } = null;
         public uint ContextOpLine { get; private set; }
 
@@ -193,7 +196,7 @@ namespace GBDisassembler
 
                 e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", f, br, x, y);
 
-                uint move = 1;
+                uint move;
                 bool end = false;
                 int yadd = Font.Height;
                 if (project.Instructions.ContainsKey(o))
@@ -208,8 +211,8 @@ namespace GBDisassembler
                 }
                 else
                 {
-                    PaintInstruction(e.Graphics, "db", false, y);
-                    e.Graphics.DrawString($"${project.ROM[o]:X2}", Font, hexOpBrush, x + Operands, y);
+                    DataType type = project.DataTypes.ContainsKey(o) ? project.DataTypes[o] : DataType.ByteSize;
+                    move = PaintData(e.Graphics, o, type, y);
                 }
 
                 if (project.Comments.ContainsKey(o))
@@ -229,6 +232,30 @@ namespace GBDisassembler
         private void PaintInstruction(Graphics g, string op, bool real, int y)
         {
             g.DrawString(op, Font, real ? realOpBrush : fakeOpBrush, Padding.Left + Main, y);
+        }
+
+        private uint PaintData(Graphics g, uint offset, DataType type, int y)
+        {
+            string inst, data;
+            uint move;
+
+            if (type.HasFlag(DataType.WordSize))
+            {
+                move = 2;
+                inst = "dw";
+                data = $"${project.ROM[offset+1]:X2}{project.ROM[offset]:X2}";
+            }
+            else
+            {
+                move = 1;
+                inst = "db";
+                data = $"${project.ROM[offset]:X2}";
+            }
+
+            PaintInstruction(g, inst, false, y);
+            g.DrawString(data, Font, hexOpBrush, Padding.Left + Operands, y);
+
+            return move;
         }
 
         private int PaintComment(Graphics g, string comment, int y)
@@ -307,6 +334,11 @@ namespace GBDisassembler
             }
         }
 
+        private bool IsData(uint location)
+        {
+            return !project.Instructions.ContainsKey(location);
+        }
+
         private void ReplaceOp(IOperand old, IOperand rep)
         {
             Instruction inst = project.Instructions[ContextOpLine];
@@ -324,14 +356,26 @@ namespace GBDisassembler
             MessageBox.Show($"Could not find operand ${old} to replace!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+        private void ReplaceData(uint location, DataType type)
+        {
+            Data?.Invoke(this, new DataEventArgs(location, type));
+            Invalidate();
+        }
+
         private void ShowOperandTypeContext(Point location)
         {
             ContextOp = CurrentOp;
             ContextOpLine = lineHotspots.First(pair => pair.Key.Contains(location)).Value;
 
-            forceROMBankToolStripMenuItem.Enabled = ContextOp.IsAddress;
+            ForceOperandBank.Enabled = ContextOp.IsAddress;
 
             OperandTypeMenu.Show(this, location);
+        }
+
+        private void ShowDataTypeContext(Point location)
+        {
+            ContextLine = CurrentLine;
+            DataTypeMenu.Show(this, location);
         }
 
         private void CodeDisplay_Disposed(object sender, EventArgs e)
@@ -367,6 +411,10 @@ namespace GBDisassembler
             var rect = lineHotspots.FirstOrDefault(pair => pair.Key.Contains(e.X, e.Y));
 
             if (rect.Key.Width > 0) CurrentLine = rect.Value;
+            if (e.Button == MouseButtons.Right && IsData(CurrentLine))
+            {
+                ShowDataTypeContext(e.Location);
+            }
         }
 
         private void CodeDisplay_MouseMove(object sender, MouseEventArgs e)
@@ -387,27 +435,27 @@ namespace GBDisassembler
             Invalidate();
         }
 
-        private void DecimalToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SetOperandDecimal_Click(object sender, EventArgs e)
         {
             ReplaceOp(ContextOp, new Plain(ContextOp.Value));
         }
 
-        private void HexToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SetOperandHex_Click(object sender, EventArgs e)
         {
             ReplaceOp(ContextOp, new WordValue(ContextOp.Value));
         }
 
-        private void RAMAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SetOperandRAM_Click(object sender, EventArgs e)
         {
             ReplaceOp(ContextOp, new Address(ContextOp.Value));
         }
 
-        private void ROMAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SetOperandROM_Click(object sender, EventArgs e)
         {
             ReplaceOp(ContextOp, BankedAddress.GuessFromContext(ContextOpLine, ContextOp.Value));
         }
 
-        private void ForceROMBankToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ForceOperandBank_Click(object sender, EventArgs e)
         {
             uint? initial = ContextOp.AbsoluteAddress;
             BankDialog dialog = new BankDialog
@@ -420,6 +468,26 @@ namespace GBDisassembler
             {
                 ReplaceOp(ContextOp, new BankedAddress(dialog.Bank, ContextOp.Value));
             }
+        }
+
+        private void SetDataByte_Click(object sender, EventArgs e)
+        {
+            ReplaceData(ContextLine, DataType.ByteSize);
+        }
+
+        private void SetDataWord_Click(object sender, EventArgs e)
+        {
+            ReplaceData(ContextLine, DataType.WordSize);
+        }
+
+        private void SetDataROM_Click(object sender, EventArgs e)
+        {
+            ReplaceData(ContextLine, DataType.WordSize | DataType.Address | DataType.ROM);
+        }
+
+        private void SetDataRAM_Click(object sender, EventArgs e)
+        {
+            ReplaceData(ContextLine, DataType.WordSize | DataType.Address | DataType.RAM);
         }
     }
 }

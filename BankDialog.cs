@@ -32,6 +32,7 @@ namespace GBDisassembler
         private void BankDialog_Shown(object sender, EventArgs e)
         {
             BankBox.Focus();
+            BankBox.Select(0, BankBox.Text.Length);
         }
     }
 }

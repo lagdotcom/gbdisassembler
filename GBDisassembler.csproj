@@ -60,6 +60,7 @@
     <Compile Include="CodeDisplay.Designer.cs">
       <DependentUpon>CodeDisplay.cs</DependentUpon>
     </Compile>
+    <Compile Include="DataEventArgs.cs" />
     <Compile Include="GotoDialog.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -17,6 +17,7 @@ namespace GBDisassembler
         const string LabelMarker = "LBL:";
         const string CommentMarker = "COM:";
         const string CustomOperandMarker = "COP:";
+        const string DataTypeMarker = "DAT:";
 
         public static Disassembler LoadProject(string fileName)
         {
@@ -91,6 +92,15 @@ namespace GBDisassembler
                     project.AddCustomOperand(address, index, ReadOperand(br));
                 }
             }
+
+            ReadStatic(br, DataTypeMarker);
+            count = br.ReadInt32();
+            for (i = 0; i < count; i++)
+            {
+                uint address = br.ReadUInt32();
+                uint type = br.ReadUInt32();
+                project.DataTypes[address] = (DataType)type;
+            }
         }
 
         private static void ReadStatic(BinaryReader br, string source)
@@ -145,6 +155,14 @@ namespace GBDisassembler
             bw.Write(project.CustomOperands.Count);
             foreach (var pair in project.CustomOperands)
                 WriteCustomOperands(bw, pair.Key, pair.Value);
+
+            WriteStatic(bw, DataTypeMarker);
+            bw.Write(project.DataTypes.Count);
+            foreach (var pair in project.DataTypes)
+            {
+                bw.Write(pair.Key);
+                bw.Write((uint)pair.Value);
+            }
         }
 
         private static void WriteInstruction(BinaryWriter bw, uint address, Instruction inst)

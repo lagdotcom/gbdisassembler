@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomOperandList.cs" />
+    <Compile Include="DataType.cs" />
     <Compile Include="Labeller.cs" />
     <Compile Include="MBC2.cs" />
     <Compile Include="Namer.cs" />

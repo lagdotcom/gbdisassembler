@@ -1021,14 +1021,14 @@ namespace GBLib
                 case OpCode.INC_SP:
                     return Ops(CPUReg.SP);
 
-                case OpCode.RST_00: return Ops(OpA(0x00));
-                case OpCode.RST_08: return Ops(OpA(0x08));
-                case OpCode.RST_10: return Ops(OpA(0x10));
-                case OpCode.RST_18: return Ops(OpA(0x18));
-                case OpCode.RST_20: return Ops(OpA(0x20));
-                case OpCode.RST_28: return Ops(OpA(0x28));
-                case OpCode.RST_30: return Ops(OpA(0x30));
-                case OpCode.RST_38: return Ops(OpA(0x38));
+                case OpCode.RST_00: return Ops(OpLA(0x00));
+                case OpCode.RST_08: return Ops(OpLA(0x08));
+                case OpCode.RST_10: return Ops(OpLA(0x10));
+                case OpCode.RST_18: return Ops(OpLA(0x18));
+                case OpCode.RST_20: return Ops(OpLA(0x20));
+                case OpCode.RST_28: return Ops(OpLA(0x28));
+                case OpCode.RST_30: return Ops(OpLA(0x30));
+                case OpCode.RST_38: return Ops(OpLA(0x38));
 
                 case OpCode.CALL_a16:
                 case OpCode.JP_a16:
@@ -1152,7 +1152,7 @@ namespace GBLib
         private static Address OpA(uint i) => new Address(i);
         private static IOperand OpAI(uint i) => new IndirectAddress(i);
         private static IOperand OpB(byte b) => new ByteValue(b);
-
+        private static IOperand OpLA(uint i) => new BankedAddress(0, i);
         private static IOperand OpP(uint n) => new Plain(n);
         private static IOperand OpS(byte b) => new StackOffset(b);
         private Address OpA16 => OpA(Op16);

@@ -16,6 +16,7 @@ namespace GBLib
             Ports = new List<IPortHandler>();
             Comments = new Dictionary<uint, string>();
             CustomOperands = new Dictionary<uint, CustomOperandList>();
+            DataTypes = new Dictionary<uint, DataType>();
             Instructions = new Dictionary<uint, Instruction>();
 
             SetupPorts();
@@ -36,6 +37,7 @@ namespace GBLib
 
         public Dictionary<uint, string> Comments;
         public Dictionary<uint, CustomOperandList> CustomOperands;
+        public Dictionary<uint, DataType> DataTypes;
         public Dictionary<uint, Instruction> Instructions;
         public Labeller Labeller;
         public Namer Namer;
