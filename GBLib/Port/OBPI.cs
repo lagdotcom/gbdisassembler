@@ -1,7 +1,7 @@
-﻿namespace GBLib.Port
+﻿namespace Lag.GBLib.Port
 {
     public class OBPI : AbstractPort
     {
-        public OBPI(Disassembler dis) : base(dis, 0xFF6A, nameof(OBPI)) { }
+        public OBPI(Gameboy dis) : base(dis, 0xFF6A, nameof(OBPI)) { }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace GBLib
+﻿namespace Lag.GBLib
 {
     public enum CGBCompatibility
     {

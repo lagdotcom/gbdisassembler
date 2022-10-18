@@ -1,4 +1,4 @@
-﻿namespace GBDisassembler
+﻿namespace Lag.Disassembler
 {
     partial class BankDialog
     {
@@ -30,8 +30,7 @@
         {
             this.CancelBtn = new System.Windows.Forms.Button();
             this.OKBtn = new System.Windows.Forms.Button();
-            this.BankBox = new System.Windows.Forms.NumericUpDown();
-            ((System.ComponentModel.ISupportInitialize)(this.BankBox)).BeginInit();
+            this.SegBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // CancelBtn
@@ -56,10 +55,11 @@
             // 
             // BankBox
             // 
-            this.BankBox.Location = new System.Drawing.Point(12, 12);
-            this.BankBox.Name = "BankBox";
-            this.BankBox.Size = new System.Drawing.Size(260, 20);
-            this.BankBox.TabIndex = 6;
+            this.SegBox.FormattingEnabled = true;
+            this.SegBox.Location = new System.Drawing.Point(12, 11);
+            this.SegBox.Name = "BankBox";
+            this.SegBox.Size = new System.Drawing.Size(260, 21);
+            this.SegBox.TabIndex = 6;
             // 
             // BankDialog
             // 
@@ -68,15 +68,14 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.CancelBtn;
             this.ClientSize = new System.Drawing.Size(284, 70);
-            this.Controls.Add(this.BankBox);
+            this.Controls.Add(this.SegBox);
             this.Controls.Add(this.CancelBtn);
             this.Controls.Add(this.OKBtn);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "BankDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Choose a bank number...";
+            this.Text = "Choose a bank...";
             this.Shown += new System.EventHandler(this.BankDialog_Shown);
-            ((System.ComponentModel.ISupportInitialize)(this.BankBox)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -85,6 +84,6 @@
 
         private System.Windows.Forms.Button CancelBtn;
         private System.Windows.Forms.Button OKBtn;
-        private System.Windows.Forms.NumericUpDown BankBox;
+        private System.Windows.Forms.ComboBox SegBox;
     }
 }

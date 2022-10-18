@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 
-namespace GBLib
+namespace Lag.GBLib
 {
     class CPUFlag : IOperand
     {

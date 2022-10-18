@@ -1,7 +1,7 @@
-﻿namespace GBLib.Port
+﻿namespace Lag.GBLib.Port
 {
     public class TMA : AbstractPort
     {
-        public TMA(Disassembler dis) : base(dis, 0xFF06, nameof(TMA)) { }
+        public TMA(Gameboy dis) : base(dis, 0xFF06, nameof(TMA)) { }
     }
 }

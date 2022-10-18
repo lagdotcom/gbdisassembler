@@ -1,19 +1,20 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 
-namespace GBLib.Port
+namespace Lag.GBLib.Port
 {
     public class WaveRAM : IPort
     {
-        public WaveRAM(Disassembler dis)
+        public WaveRAM(Gameboy dis)
         {
             Parent = dis;
         }
 
-        public Disassembler Parent;
-        public bool Handles(IOperand op) => op.AbsoluteAddress >= 0xFF30 && op.AbsoluteAddress <= 0xFF3F;
-        public string Identify(uint address) => $"[WaveRAM.{address - 0xFF30:X}]";
+        public Gameboy Parent;
+        public bool Handles(Word addr) => addr.Absolute >= 0xFF30 && addr.Absolute <= 0xFF3F;
+        public string Identify(Word addr) => $"WaveRAM+${addr.Absolute - 0xFF30:X}";
 
-        public void Apply(uint address, byte value)
+        public void Apply(Word addr, byte value)
         {
             throw new NotImplementedException();
         }

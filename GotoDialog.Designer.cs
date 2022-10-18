@@ -1,4 +1,4 @@
-﻿namespace GBDisassembler
+﻿namespace Lag.Disassembler
 {
     partial class GotoDialog
     {
@@ -30,7 +30,8 @@
         {
             this.CancelBtn = new System.Windows.Forms.Button();
             this.OKBtn = new System.Windows.Forms.Button();
-            this.AddressBox = new System.Windows.Forms.TextBox();
+            this.SegBox = new System.Windows.Forms.ComboBox();
+            this.OffsetBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // CancelBtn
@@ -53,13 +54,20 @@
             this.OKBtn.Text = "OK";
             this.OKBtn.UseVisualStyleBackColor = true;
             // 
-            // AddressBox
+            // SegBox
             // 
-            this.AddressBox.Location = new System.Drawing.Point(12, 11);
-            this.AddressBox.Name = "AddressBox";
-            this.AddressBox.Size = new System.Drawing.Size(260, 20);
-            this.AddressBox.TabIndex = 3;
-            this.AddressBox.Text = "00:0000";
+            this.SegBox.FormattingEnabled = true;
+            this.SegBox.Location = new System.Drawing.Point(12, 10);
+            this.SegBox.Name = "SegBox";
+            this.SegBox.Size = new System.Drawing.Size(127, 21);
+            this.SegBox.TabIndex = 6;
+            // 
+            // OffsetBox
+            // 
+            this.OffsetBox.Location = new System.Drawing.Point(145, 10);
+            this.OffsetBox.Name = "OffsetBox";
+            this.OffsetBox.Size = new System.Drawing.Size(127, 20);
+            this.OffsetBox.TabIndex = 7;
             // 
             // GotoDialog
             // 
@@ -68,9 +76,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.CancelBtn;
             this.ClientSize = new System.Drawing.Size(284, 70);
+            this.Controls.Add(this.OffsetBox);
+            this.Controls.Add(this.SegBox);
             this.Controls.Add(this.CancelBtn);
             this.Controls.Add(this.OKBtn);
-            this.Controls.Add(this.AddressBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "GotoDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -85,6 +94,7 @@
 
         private System.Windows.Forms.Button CancelBtn;
         private System.Windows.Forms.Button OKBtn;
-        private System.Windows.Forms.TextBox AddressBox;
+        private System.Windows.Forms.ComboBox SegBox;
+        private System.Windows.Forms.TextBox OffsetBox;
     }
 }

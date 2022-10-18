@@ -1,33 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using Lag.DisassemblerLib;
 
-namespace GBDisassembler
+namespace Lag.Disassembler
 {
-    using GBLib;
-    using GBLib.Operand;
 
     public partial class CodeDisplay : UserControl
     {
         public const int BigJump = 0x40;
 
-        const int Main = 100;
-        const int Operands = Main + 40;
-        const int Comment = Operands + 200;
+        private const int PerRawByte = 20;
+
+        private int RawBytes => 90;
+        private int Main => project == null ? RawBytes : RawBytes + project.MaxOpSize * PerRawByte + 5;
+        private int Operands => Main + 50;
+        private int Comment => Operands + 200;
+
         private uint offset = 0;
         private uint currentLine = 0;
         private Dictionary<Rectangle, uint> lineHotspots;
-        private Dictionary<Rectangle, IOperand> opHovers;
+        private Dictionary<Rectangle, Word> wordHovers;
         private List<uint> lineNumbers;
-        private Disassembler project;
+        private IProject project;
 
         private Font hoverFont;
+        private Brush rawBytesBrush = Brushes.LightCoral;
         private Brush realOpBrush = Brushes.Blue;
         private Brush offsetBrush = Brushes.Gray;
         private Brush labelBrush = Brushes.DarkGreen;
@@ -38,7 +38,7 @@ namespace GBDisassembler
         private Brush hoverOpBrush = Brushes.Blue;
         private Brush numericOpBrush = Brushes.Purple;
         private Brush registerOpBrush = Brushes.Blue;
-        private Brush addressOpBrush = Brushes.Red;
+        private Brush romOpBrush = Brushes.Red;
         private Brush identifiedOpBrush = Brushes.DarkOrange;
         private Brush commentBrush = Brushes.Green;
 
@@ -48,7 +48,7 @@ namespace GBDisassembler
             InitializeComponent();
 
             lineHotspots = new Dictionary<Rectangle, uint>();
-            opHovers = new Dictionary<Rectangle, IOperand>();
+            wordHovers = new Dictionary<Rectangle, Word>();
             lineNumbers = new List<uint>();
             hoverFont = new Font(Font, FontStyle.Underline);
 
@@ -57,8 +57,6 @@ namespace GBDisassembler
             Disposed += CodeDisplay_Disposed;
             MouseWheel += CodeDisplay_MouseWheel;
         }
-
-        public event EventHandler<DataEventArgs> Data;
 
         public event EventHandler<GotoEventArgs> Goto;
 
@@ -77,10 +75,10 @@ namespace GBDisassembler
             }
         }
 
-        public IOperand CurrentOp { get; private set; } = null;
+        public Word CurrentOp { get; private set; } = null;
 
         public uint ContextLine { get; private set; }
-        public IOperand ContextOp { get; private set; } = null;
+        public Word ContextOp { get; private set; } = null;
         public uint ContextOpLine { get; private set; }
 
         public uint Offset
@@ -94,7 +92,7 @@ namespace GBDisassembler
             }
         }
 
-        public Disassembler Project
+        public IProject Project
         {
             get => project;
             set
@@ -160,7 +158,7 @@ namespace GBDisassembler
             }
 
             lineHotspots.Clear();
-            opHovers.Clear();
+            wordHovers.Clear();
             lineNumbers.Clear();
 
             e.Graphics.FillRectangle(Brushes.White, e.ClipRectangle);
@@ -170,14 +168,16 @@ namespace GBDisassembler
 
             while (y < e.ClipRectangle.Bottom && o < project.ROM.Length)
             {
+                Word addr = Project.FromAbsolute(o);
+
                 int sy = y;
                 lineNumbers.Add(o);
 
-                if (project.Labeller.Labels.ContainsKey(o))
+                if (project.Labeller.Handles(addr))
                 {
                     y += Font.Height;
 
-                    string label = project.Labeller.Identify(o);
+                    string label = project.Labeller.Identify(addr);
                     e.Graphics.DrawString($"{label}:", Font, labelBrush, x + Main, y);
 
                     y += Font.Height;
@@ -188,31 +188,36 @@ namespace GBDisassembler
 
                 Font f = Font;
                 Brush br = offsetBrush;
-                if (CurrentOp != null && CurrentOp.AbsoluteAddress == o)
+                if (CurrentOp?.Absolute == o)
                 {
                     f = hoverFont;
                     br = hoverOffsetBrush;
                 }
 
-                e.Graphics.DrawString($"{o / 0x4000:X2}:{o % 0x4000:X4}", f, br, x, y);
+                e.Graphics.DrawString($"{addr}", f, br, x, y);
 
                 uint move;
                 bool end = false;
                 int yadd = Font.Height;
                 if (project.Instructions.ContainsKey(o))
                 {
-                    Instruction inst = project.Instructions[o];
+                    IInstruction inst = project.Instructions[o];
                     move = inst.TotalSize;
 
-                    PaintInstruction(e.Graphics, inst.OpType, true, y);
+                    PaintBytes(e.Graphics, project.ROM.Slice(o, o + move), y);
+                    PaintInstruction(e.Graphics, inst.OpType, inst.IsReal, y);
                     if (inst.Operands != null) PaintOperands(e.Graphics, inst.Operands, y);
 
                     end = inst.IsEnd;
                 }
                 else
                 {
-                    DataType type = project.DataTypes.ContainsKey(o) ? project.DataTypes[o] : DataType.ByteSize;
-                    move = PaintData(e.Graphics, o, type, y);
+                    IOperand[] fakeops = new IOperand[] { new DisassemblerLib.Byte(project.ROM[o]) { IsHex = true } };
+                    PaintBytes(e.Graphics, project.ROM.Slice(o, o+1), y);
+                    PaintInstruction(e.Graphics, "db", false, y);
+                    PaintOperands(e.Graphics, fakeops, y);
+
+                    move = 1;
                 }
 
                 if (project.Comments.ContainsKey(o))
@@ -229,33 +234,19 @@ namespace GBDisassembler
             }
         }
 
+        private void PaintBytes(Graphics g, byte[] bytes, int y)
+        {
+            int x = RawBytes;
+            foreach (byte b in bytes)
+            {
+                g.DrawString(b.ToString("X2"), Font, rawBytesBrush, x, y);
+                x += PerRawByte;
+            }
+        }
+
         private void PaintInstruction(Graphics g, string op, bool real, int y)
         {
             g.DrawString(op, Font, real ? realOpBrush : fakeOpBrush, Padding.Left + Main, y);
-        }
-
-        private uint PaintData(Graphics g, uint offset, DataType type, int y)
-        {
-            string inst, data;
-            uint move;
-
-            if (type.HasFlag(DataType.WordSize))
-            {
-                move = 2;
-                inst = "dw";
-                data = $"${project.ROM[offset+1]:X2}{project.ROM[offset]:X2}";
-            }
-            else
-            {
-                move = 1;
-                inst = "db";
-                data = $"${project.ROM[offset]:X2}";
-            }
-
-            PaintInstruction(g, inst, false, y);
-            g.DrawString(data, Font, hexOpBrush, Padding.Left + Operands, y);
-
-            return move;
         }
 
         private int PaintComment(Graphics g, string comment, int y)
@@ -279,11 +270,19 @@ namespace GBDisassembler
 
                 string s = op.ToString();
                 bool handled = false;
-                IPortHandler handler = project.FindHandler(op);
-                if (handler != null && op.AbsoluteAddress.HasValue)
+                Word word = op as Word;
+
+                if (word != null)
                 {
-                    s = handler.Identify(op.AbsoluteAddress.Value);
-                    handled = true;
+                    IPortHandler handler = project.FindHandler(word);
+                    if (handler != null)
+                    {
+                        s = handler.Identify(word);
+                        handled = true;
+
+                        if (word.Indirect)
+                            s = $"({s})";
+                    }
                 }
 
                 if (op == CurrentOp)
@@ -299,9 +298,9 @@ namespace GBDisassembler
                 {
                     br = registerOpBrush;
                 }
-                else if (op.AbsoluteAddress.HasValue)
+                else if (word != null && word.ROM)
                 {
-                    br = addressOpBrush;
+                    br = romOpBrush;
                 }
                 else if (op.IsHex)
                 {
@@ -313,11 +312,9 @@ namespace GBDisassembler
                 }
 
                 Size size = g.MeasureString(s, f).ToSize();
-
                 Rectangle r = new Rectangle(x, y, size.Width, size.Height);
-
-                if (op.IsNumeric)
-                    opHovers[r] = op;
+                if (word != null)
+                    wordHovers[r] = word;
 
                 g.DrawString(s, f, br, x, y);
                 x += size.Width;
@@ -339,15 +336,15 @@ namespace GBDisassembler
             return !project.Instructions.ContainsKey(location);
         }
 
-        private void ReplaceOp(IOperand old, IOperand rep)
+        private void ReplaceOp(IOperand old, Word rep)
         {
-            Instruction inst = project.Instructions[ContextOpLine];
+            IInstruction inst = project.Instructions[ContextOpLine];
             for (var i = 0; i < inst.Operands.Length; i++)
             {
                 IOperand op = inst.Operands[i];
                 if (op == old)
                 {
-                    Replace?.Invoke(this, new ReplaceEventArgs(ContextOpLine, i, rep));
+                    Replace?.Invoke(this, new ReplaceEventArgs(ContextOpLine, rep));
                     Invalidate();
                     return;
                 }
@@ -356,9 +353,9 @@ namespace GBDisassembler
             MessageBox.Show($"Could not find operand ${old} to replace!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void ReplaceData(uint location, DataType type)
+        private void ReplaceData(uint location, Word rep)
         {
-            Data?.Invoke(this, new DataEventArgs(location, type));
+            Replace?.Invoke(this, new ReplaceEventArgs(ContextLine, rep));
             Invalidate();
         }
 
@@ -367,7 +364,7 @@ namespace GBDisassembler
             ContextOp = CurrentOp;
             ContextOpLine = lineHotspots.First(pair => pair.Key.Contains(location)).Value;
 
-            ForceOperandBank.Enabled = ContextOp.IsAddress;
+            ForceOperandBank.Enabled = ContextOp.ROM;
 
             OperandTypeMenu.Show(this, location);
         }
@@ -396,9 +393,9 @@ namespace GBDisassembler
         
         private void CodeDisplay_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && CurrentOp != null && CurrentOp.AbsoluteAddress.HasValue)
+            if (e.Button == MouseButtons.Left && CurrentOp != null && CurrentOp.ROM)
             {
-                Goto?.Invoke(this, new GotoEventArgs(CurrentOp.AbsoluteAddress.Value));
+                Goto?.Invoke(this, new GotoEventArgs(CurrentOp.Absolute));
                 return;
             }
 
@@ -419,7 +416,7 @@ namespace GBDisassembler
 
         private void CodeDisplay_MouseMove(object sender, MouseEventArgs e)
         {
-            var rect = opHovers.FirstOrDefault(pair => pair.Key.Contains(e.X, e.Y));
+            var rect = wordHovers.FirstOrDefault(pair => pair.Key.Contains(e.X, e.Y));
 
             if (rect.Key.Width > 0)
             {
@@ -437,57 +434,60 @@ namespace GBDisassembler
 
         private void SetOperandDecimal_Click(object sender, EventArgs e)
         {
-            ReplaceOp(ContextOp, new Plain(ContextOp.Value));
+            ReplaceOp(ContextOp, new Word(ContextOp.Offset) { RAM = false, IsHex = false });
         }
 
         private void SetOperandHex_Click(object sender, EventArgs e)
         {
-            ReplaceOp(ContextOp, new WordValue(ContextOp.Value));
+            ReplaceOp(ContextOp, new Word(ContextOp.Offset) { RAM = false, IsHex = true });
         }
 
         private void SetOperandRAM_Click(object sender, EventArgs e)
         {
-            ReplaceOp(ContextOp, new Address(ContextOp.Value));
+            ReplaceOp(ContextOp, new Word(ContextOp.Offset));
         }
 
         private void SetOperandROM_Click(object sender, EventArgs e)
         {
-            ReplaceOp(ContextOp, BankedAddress.GuessFromContext(ContextOpLine, ContextOp.Value));
+            ReplaceOp(ContextOp, Project.GuessFromContext(ContextOpLine, ContextOp.Offset));
         }
 
         private void ForceOperandBank_Click(object sender, EventArgs e)
         {
-            uint? initial = ContextOp.AbsoluteAddress;
-            BankDialog dialog = new BankDialog
+            using (BankDialog dialog = new BankDialog
             {
-                Bank = (uint)(initial.HasValue ? initial / BankedAddress.BankSize : 0),
-                Max = (int)(project.Header.ROM / BankedAddress.BankSize)
-            };
-
-            if (dialog.ShowDialog() == DialogResult.OK)
+                Segments = project.Segments,
+                Seg = ContextOp.Seg,
+            })
             {
-                ReplaceOp(ContextOp, new BankedAddress(dialog.Bank, ContextOp.Value));
+                if (dialog.ShowDialog() == DialogResult.OK)
+                    ReplaceOp(ContextOp, new Word(dialog.Seg, ContextOp.Offset));
             }
         }
 
         private void SetDataByte_Click(object sender, EventArgs e)
         {
-            ReplaceData(ContextLine, DataType.ByteSize);
+            ReplaceData(ContextLine, null);
         }
 
         private void SetDataWord_Click(object sender, EventArgs e)
         {
-            ReplaceData(ContextLine, DataType.WordSize);
+            ReplaceData(ContextLine, new Word(GetContextWord()));
         }
 
         private void SetDataROM_Click(object sender, EventArgs e)
         {
-            ReplaceData(ContextLine, DataType.WordSize | DataType.Address | DataType.ROM);
+            ReplaceData(ContextLine, Project.GuessFromContext(ContextLine, GetContextWord()));
         }
 
         private void SetDataRAM_Click(object sender, EventArgs e)
         {
-            ReplaceData(ContextLine, DataType.WordSize | DataType.Address | DataType.RAM);
+            ReplaceData(ContextLine, new Word(GetContextWord()));
+        }
+
+        private uint GetContextWord()
+        {
+            return (uint)(project.ROM[ContextLine] + (project.ROM[ContextLine + 1] << 8));
         }
     }
 }

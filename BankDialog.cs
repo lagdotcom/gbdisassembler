@@ -1,38 +1,41 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace GBDisassembler
+namespace Lag.Disassembler
 {
     public partial class BankDialog : Form
     {
+        private IEnumerable<Segment> segs;
+
         public BankDialog()
         {
+            segs = Array.Empty<Segment>();
             InitializeComponent();
         }
 
-        public uint Bank
+        public Segment Seg
         {
-            get => (uint)BankBox.Value;
-            set => BankBox.Value = value;
+            get => (Segment)SegBox.SelectedItem;
+            set => SegBox.SelectedItem = value;
         }
 
-        public int Max
+        public IEnumerable<Segment> Segments
         {
-            get => (int)BankBox.Maximum;
-            set => BankBox.Maximum = value;
+            get => segs;
+            set
+            {
+                segs = value;
+                SegBox.Items.Clear();
+                foreach (Segment seg in segs)
+                    SegBox.Items.Add(seg);
+            }
         }
 
         private void BankDialog_Shown(object sender, EventArgs e)
         {
-            BankBox.Focus();
-            BankBox.Select(0, BankBox.Text.Length);
+            SegBox.Focus();
         }
     }
 }

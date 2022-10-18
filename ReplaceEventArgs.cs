@@ -1,18 +1,16 @@
-﻿namespace GBDisassembler
-{
-    using GBLib;
+﻿using Lag.DisassemblerLib;
 
+namespace Lag.Disassembler
+{
     public class ReplaceEventArgs
     {
-        public ReplaceEventArgs(uint location, int index, IOperand operand)
+        public ReplaceEventArgs(uint location, Word operand)
         {
             Location = location;
-            Index = index;
             Operand = operand;
         }
 
         public uint Location { get; }
-        public int Index { get; }
-        public IOperand Operand { get; }
+        public Word Operand { get; }
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace GBLib
+﻿namespace Lag.GBLib
 {
-    public enum OpCode : byte
+    public enum OpCode
     {
         NOP = 0x00,
         LD_BC_d16,
@@ -262,5 +262,8 @@
         EI,
         CP_d8 = 0xFE,
         RST_38,
+
+        DATA_BYTE,
+        DATA_WORD,
     }
 }

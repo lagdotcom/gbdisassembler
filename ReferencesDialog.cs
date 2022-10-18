@@ -1,26 +1,20 @@
-﻿using GBLib;
-using System;
+﻿using Lag.DisassemblerLib;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace GBDisassembler
+namespace Lag.Disassembler
 {
     public partial class ReferencesDialog : Form
     {
-        private Instruction[] references;
+        private IInstruction[] references;
 
         public ReferencesDialog()
         {
             InitializeComponent();
         }
 
-        public IEnumerable<Instruction> References
+        public IEnumerable<IInstruction> References
         {
             get => references;
             set
@@ -28,7 +22,7 @@ namespace GBDisassembler
                 references = value.ToArray();
 
                 ReferenceList.Items.Clear();
-                foreach (Instruction inst in value)
+                foreach (IInstruction inst in value)
                     ReferenceList.Items.Add(inst.ToString());
             }
         }

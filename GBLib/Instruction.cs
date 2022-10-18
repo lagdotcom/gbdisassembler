@@ -1,44 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GBLib.Operand;
+using Lag.DisassemblerLib;
 
-namespace GBLib
+namespace Lag.GBLib
 {
-    public class Instruction
+    public class Instruction : IInstruction
     {
         public Instruction() { }
-        public Instruction(Disassembler dis, OpCode op, uint loc) : this()
+        public Instruction(Gameboy project, OpCode op, uint loc) : this()
         {
-            Parent = dis;
+            Project = project;
             Location = loc;
-            Address = new BankedAddress(loc);
+            Address = Project.FromAbsolute(loc);
             Op = op;
             OperandSize = LR35902.GetOperandSize(op);
 
-            OperandBytes = Tool.Slice(Parent.ROM, loc + 1, loc + TotalSize);
+            OperandBytes = Project.ROM.Slice(loc + 1, loc + TotalSize);
             IsEnd = LR35902.IsOpEnd(op);
-            JumpLocation = LR35902.GetJumpDestination(op, loc + 1, OperandBytes);
+            IsReal = true;
+            JumpLocation = Project.CPU.GetJumpDestination(op, loc + 1, OperandBytes);
 
             if (Op == OpCode.PREFIX_CB)
                 CBOp = (CBOpCode)OperandBytes[0];
 
             OpType = DetermineOpType(Op, CBOp);
             Operands = DetermineOperands();
+            for (int i = 0; i < Operands.Length; i++)
+            {
+                if (Operands[i] is Word)
+                {
+                    WordOperandIndex = i;
+                    break;
+                }
+            }
         }
 
-        public BankedAddress Address;
-        public Disassembler Parent;
-        public uint Location;
+        public static Instruction DataWord(Gameboy dis, Word op, uint loc) => new Instruction()
+        {
+            Project = dis,
+            Location = loc,
+            Address = dis.FromAbsolute(loc),
+            Op = OpCode.DATA_WORD,
+            OperandSize = 1,    // I know this looks weird, it's because of TotalSize
+            IsEnd = false,
+            IsReal = false,
+            OpType = "dw",
+            Operands = new IOperand[] { op },
+            WordOperandIndex = 0
+        };
+
+        public Word Address;
+        public Gameboy Project;
+        public uint Location { get; private set; }
         public OpCode Op;
         public CBOpCode? CBOp;
         public byte[] OperandBytes;
 
-        public string OpType;
-        public IOperand[] Operands;
+        public string OpType { get; private set; }
+        public IOperand[] Operands { get; private set; }
+        public int? WordOperandIndex { get; private set; }
 
-        public uint OperandSize;
-        public bool IsEnd;
+        public uint OperandSize { get; private set; }
+        public bool IsEnd { get; private set; }
+        public bool IsReal { get; private set; }
         public uint? JumpLocation;
         public uint TotalSize => 1 + OperandSize;
 
@@ -48,10 +73,18 @@ namespace GBLib
 
         private string ImproveOperand(IOperand op)
         {
-            IPortHandler handler = Parent.FindHandler(op);
-            if (handler != null)
-                return handler.Identify(op.AbsoluteAddress.Value);
-            
+            if (op is Word word)
+            {
+                IPortHandler handler = Project.FindHandler(word);
+                if (handler != null)
+                {
+                    string name = handler.Identify(word);
+                    return word.Indirect ? $"({name})" : name;
+                }
+
+                return word.ToString();
+            }
+
             return op.ToString();
         }
 
@@ -347,9 +380,11 @@ namespace GBLib
                 case OpCode.LD_L_L:
                 case OpCode.LD_SP_d16:
                 case OpCode.LD_SP_HL:
+                    return "LD";
+
                 case OpCode.LD_h8_A:
                 case OpCode.LD_A_h8:
-                    return "LD";
+                    return "LDH";
 
                 case OpCode.NOP: return "NOP";
 
@@ -894,8 +929,8 @@ namespace GBLib
                 case OpCode.LD_A_iDE: return Ops(CPUReg.A, CPUReg.DEI);
                 case OpCode.LD_A_iHLm: return Ops(CPUReg.A, CPUReg.HLIM);
                 case OpCode.LD_A_iHLp: return Ops(CPUReg.A, CPUReg.HLIP);
-                case OpCode.LD_A_a16: return Ops(CPUReg.A, R(OpA16));
-                case OpCode.LD_a16_A: return Ops(W(OpA16), CPUReg.A);
+                case OpCode.LD_A_a16: return Ops(CPUReg.A, R(OpAI16));
+                case OpCode.LD_a16_A: return Ops(W(OpAI16), CPUReg.A);
 
                 case OpCode.ADC_A_iHL:
                 case OpCode.ADD_A_iHL:
@@ -1113,7 +1148,7 @@ namespace GBLib
                 case OpCode.LD_H_iHL: return Ops(CPUReg.H, CPUReg.HLI);
                 case OpCode.LD_H_L: return Ops(CPUReg.H, CPUReg.L);
                 case OpCode.LD_HL_SPpr8: return Ops(CPUReg.HL, OpS8);
-                case OpCode.LD_i16_SP: return Ops(OpAI16, CPUReg.SP);
+                case OpCode.LD_i16_SP: return Ops(OpA16, CPUReg.SP);
                 case OpCode.LD_iBC_A: return Ops(CPUReg.BCI, CPUReg.A);
                 case OpCode.LD_iDE_A: return Ops(CPUReg.DEI, CPUReg.A);
                 case OpCode.LD_iHL_A: return Ops(CPUReg.HLI, CPUReg.A);
@@ -1146,25 +1181,75 @@ namespace GBLib
             }
         }
 
-        private IOperand OpJ(uint i) => BankedAddress.GuessFromContext(Location, i);
+        private IOperand OpJ(uint i) => Project.GuessFromContext(Location, i);
 
         private static IOperand[] Ops(params IOperand[] parts) => parts;
-        private static Address OpA(uint i) => new Address(i);
-        private static IOperand OpAI(uint i) => new IndirectAddress(i);
-        private static IOperand OpB(byte b) => new ByteValue(b);
-        private static IOperand OpLA(uint i) => new BankedAddress(0, i);
+        private static Word OpA(uint i) => new Word(i);
+        private static Word OpAI(uint i) => new Word(i) { Indirect = true };
+        private static IOperand OpB(byte b) => new DisassemblerLib.Byte(b) { IsHex = true };
         private static IOperand OpP(uint n) => new Plain(n);
         private static IOperand OpS(byte b) => new StackOffset(b);
-        private Address OpA16 => OpA(Op16);
-        private IOperand OpAI16 => OpAI(Op16);
+        private Word OpA16 => OpA(Op16);
+        private Word OpAI16 => OpAI(Op16);
         private IOperand OpD8 => OpB(OperandBytes[0]);
-        private Address OpD16 => OpA(Op16);
-        private Address OpH8 => OpA((uint)0xFF00 + OperandBytes[0]);
+        private Word OpD16 => OpA(Op16);
+        private Word OpH8 => new Word((uint)0xFF00 + OperandBytes[0]) { Indirect = true };
         private IOperand OpJ16 => OpJ(Op16);
+        private IOperand OpLA(uint i) => Project.FromAbsolute(i);
         private IOperand OpR8 => OpJ((uint)(Location + 2 + (sbyte)OperandBytes[0]));
         private IOperand OpS8 => OpS(OperandBytes[0]);
         private uint Op16 => BitConverter.ToUInt16(OperandBytes, 0);
-        private static IOperand R(Address ao) => ao.SetRead();
-        private static IOperand W(Address ao) => ao.SetWrite();
+        private static IOperand R(Word ao)
+        {
+            ao.Read = true;
+            return ao;
+        }
+        private static IOperand W(Word ao)
+        {
+            ao.Write = true;
+            return ao;
+        }
+
+        public void WriteAsm(System.IO.StreamWriter sw)
+        {
+            IEnumerable<string> operands;
+            string opcode = OpType;
+
+            if (OpType == "dw")
+                opcode = ".DW";
+
+            // specific fixes
+            if (OpType == "LDH")
+            {
+                operands = Operands.Select(op =>
+                {
+                    if (op is Word word)
+                    {
+                        IPortHandler handler = Project.FindHandler(word);
+                        if (handler != null) return $"(R_{handler.Identify(word)})";
+                        return $"(${word.Offset - 0xFF00:X2})";
+                    }
+
+                    return op.ToString();
+                });
+            }
+            else if (OpType == "JR")
+            {
+                operands = Operands.Select(op =>
+                {
+                    if (op is Word word)
+                    {
+                        if (Project.Labeller.Handles(word)) return Project.Labeller.Identify(word);
+                        int offset = (int)word.Absolute - (int)Location - (int)TotalSize;
+                        return offset.ToString();
+                    }
+
+                    return op.ToString();
+                });
+            }
+            else operands = OperandStrings;
+
+            sw.WriteLine($"{opcode} {string.Join(",", operands)}".Trim());
+        }
     }
 }

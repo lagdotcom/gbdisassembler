@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace GBLib
+namespace Lag.GBLib
 {
     [Serializable]
-    public class CustomOperandList : Dictionary<int, IOperand>
+    public class CustomOperandList : Dictionary<int, Word>
     {
         public CustomOperandList() : base()
         {

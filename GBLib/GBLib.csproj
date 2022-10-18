@@ -7,10 +7,11 @@
     <ProjectGuid>{3644DD8E-3E5D-41F3-AAAB-877B888E08E4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GBLib</RootNamespace>
+    <RootNamespace>Lag.GBLib</RootNamespace>
     <AssemblyName>GBLib</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,32 +47,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IMBC.cs" />
     <Compile Include="CustomOperandList.cs" />
-    <Compile Include="DataType.cs" />
-    <Compile Include="Labeller.cs" />
+    <Compile Include="GameboyLabeller.cs" />
+    <Compile Include="MBC1.cs" />
     <Compile Include="MBC2.cs" />
-    <Compile Include="Namer.cs" />
-    <Compile Include="Operand\BankedAddress.cs" />
-    <Compile Include="Operand\Address.cs" />
-    <Compile Include="Operand\ByteValue.cs" />
     <Compile Include="CBOpCode.cs" />
     <Compile Include="CGBCompatibility.cs" />
     <Compile Include="Consts.cs" />
     <Compile Include="CPUFlag.cs" />
     <Compile Include="CPUReg.cs" />
     <Compile Include="DestinationCode.cs" />
-    <Compile Include="Disassembler.cs" />
-    <Compile Include="Operand\IndirectAddress.cs" />
+    <Compile Include="Gameboy.cs" />
     <Compile Include="Instruction.cs" />
-    <Compile Include="IOperand.cs" />
-    <Compile Include="IPort.cs" />
-    <Compile Include="IPortHandler.cs" />
     <Compile Include="LR35902.cs" />
     <Compile Include="MBC5.cs" />
     <Compile Include="MemoryBankController.cs" />
+    <Compile Include="NullMBC.cs" />
     <Compile Include="OpCode.cs" />
-    <Compile Include="Operand\Plain.cs" />
-    <Compile Include="Operand\WordValue.cs" />
     <Compile Include="Port\AbstractPort.cs" />
     <Compile Include="Port\BGP.cs" />
     <Compile Include="Port\BGPD.cs" />
@@ -85,7 +78,7 @@
     <Compile Include="Port\HDMA5.cs" />
     <Compile Include="Port\IE.cs" />
     <Compile Include="Port\IF.cs" />
-    <Compile Include="Port\JOYP.cs" />
+    <Compile Include="Port\P1.cs" />
     <Compile Include="Port\KEY1.cs" />
     <Compile Include="Port\LCDC.cs" />
     <Compile Include="Port\LY.cs" />
@@ -131,11 +124,15 @@
     <Compile Include="Port\WY.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RomHeader.cs" />
-    <Compile Include="Operand\StackOffset.cs" />
-    <Compile Include="Tool.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DisassemblerLib\DisassemblerLib.csproj">
+      <Project>{69816B37-608E-4C92-A3C9-CD276CA93DD5}</Project>
+      <Name>DisassemblerLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,7 +1,7 @@
-﻿namespace GBLib.Port
+﻿namespace Lag.GBLib.Port
 {
     public class RP : AbstractPort
     {
-        public RP(Disassembler dis) : base(dis, 0xFF56, nameof(RP)) { }
+        public RP(Gameboy dis) : base(dis, 0xFF56, nameof(RP)) { }
     }
 }

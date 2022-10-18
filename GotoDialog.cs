@@ -1,43 +1,62 @@
-﻿using GBLib.Operand;
+﻿using Lag.DisassemblerLib;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
 using System.Windows.Forms;
 
-namespace GBDisassembler
+namespace Lag.Disassembler
 {
     public partial class GotoDialog : Form
     {
+        private IEnumerable<Segment> segs;
+
         public GotoDialog()
         {
+            segs = Array.Empty<Segment>();
             InitializeComponent();
         }
 
-        public BankedAddress Address
+        public Segment Seg
         {
-            get
-            {
-                try
-                {
-                    return BankedAddress.Parse(AddressBox.Text);
-                }
-                catch (Exception)
-                {
-                    return new BankedAddress();
-                }
-            }
+            get => (Segment)SegBox.SelectedItem;
+            set => SegBox.SelectedItem = value;
+        }
 
-            set { AddressBox.Text = value.ToString(); }
+        public uint Offset
+        {
+            get => uint.Parse(OffsetBox.Text, NumberStyles.HexNumber);
+            set => OffsetBox.Text = value.ToString("X4");
+        }
+
+        public IEnumerable<Segment> Segments
+        {
+            get => segs;
+            set
+            {
+                Segment sel = Seg;
+
+                segs = value;
+                SegBox.Items.Clear();
+                foreach (Segment seg in segs)
+                    SegBox.Items.Add(seg);
+
+                Seg = sel;
+            }
+        }
+
+        public Word Address
+        {
+            get => new Word(Seg, Offset);
+            set
+            {
+                Seg = value.Seg;
+                Offset = value.Offset;
+            }
         }
 
         private void GotoDialog_Shown(object sender, EventArgs e)
         {
-            AddressBox.Focus();
+            OffsetBox.Focus();
         }
     }
 }

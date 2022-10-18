@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 
-namespace GBLib
+namespace Lag.GBLib
 {
     public class LR35902
     {
         public LR35902() { }
 
-        public LR35902(Disassembler dis) : base()
+        public LR35902(Gameboy dis) : base()
         {
             Parent = dis;
         }
 
-        public Disassembler Parent;
+        public Gameboy Parent;
 
         public Instruction Decode(uint loc)
         {
@@ -23,7 +24,7 @@ namespace GBLib
 
         public static OpCode? GetOpCode(byte b)
         {
-            if (Enum.IsDefined(typeof(OpCode), b)) return (OpCode)b;
+            if (Enum.IsDefined(typeof(OpCode), (int)b)) return (OpCode)b;
 
             return null;
         }
@@ -108,7 +109,7 @@ namespace GBLib
             }
         }
 
-        public static uint? GetJumpDestination(OpCode op, uint current, byte[] v)
+        public uint? GetJumpDestination(OpCode op, uint current, byte[] v)
         {
             switch (op)
             {
@@ -123,23 +124,9 @@ namespace GBLib
                 case OpCode.JP_NZ_a16:
                 case OpCode.JP_Z_a16:
                     uint loc = BitConverter.ToUInt16(v, 0);
-                    if (loc >= 0x8000)
-                    {
-                        // TODO: jumping to RAM not supported yet
-                        return null;
-                    }
-
-                    if (loc >= 0x4000)
-                    {
-                        if (current < 0x4000)
-                        {
-                            // TODO: may be possible to infer bank from context
-                            return null;
-                        }
-
-                        return Tool.ReBank(current, loc);
-                    }
-                    return loc;
+                    Word w = Parent.GuessFromContext(current, loc);
+                    if (w.Seg == null) return null;
+                    return w.Absolute;
 
                 case OpCode.RST_00: return 0x00;
                 case OpCode.RST_08: return 0x08;

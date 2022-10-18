@@ -1,4 +1,4 @@
-﻿namespace GBDisassembler
+﻿namespace Lag.Disassembler
 {
     partial class MainForm
     {
@@ -43,7 +43,9 @@
             this.FwdBtn = new System.Windows.Forms.Button();
             this.BackBtn = new System.Windows.Forms.Button();
             this.LabelsBox = new System.Windows.Forms.ListBox();
-            this.Code = new GBDisassembler.CodeDisplay();
+            this.Code = new Lag.Disassembler.CodeDisplay();
+            this.Ram = new Lag.Disassembler.RAMDisplay();
+            this.ExportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.ToolPanel.SuspendLayout();
             this.SuspendLayout();
@@ -64,6 +66,7 @@
             this.OpenToolStripMenuItem,
             this.SaveToolStripMenuItem,
             this.CloseToolStripMenuItem,
+            this.ExportToolStripMenuItem,
             this.ExitToolStripMenuItem});
             this.FileToolStripMenuItem.Name = "FileToolStripMenuItem";
             this.FileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -72,14 +75,14 @@
             // NewToolStripMenuItem
             // 
             this.NewToolStripMenuItem.Name = "NewToolStripMenuItem";
-            this.NewToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.NewToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.NewToolStripMenuItem.Text = "&New...";
             this.NewToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
             // 
             // OpenToolStripMenuItem
             // 
             this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.OpenToolStripMenuItem.Text = "&Open...";
             this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
@@ -87,7 +90,7 @@
             // 
             this.SaveToolStripMenuItem.Enabled = false;
             this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.SaveToolStripMenuItem.Text = "&Save";
             this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
@@ -95,20 +98,20 @@
             // 
             this.CloseToolStripMenuItem.Enabled = false;
             this.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem";
-            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.CloseToolStripMenuItem.Text = "&Close";
             this.CloseToolStripMenuItem.Click += new System.EventHandler(this.CloseToolStripMenuItem_Click);
             // 
             // ExitToolStripMenuItem
             // 
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.ExitToolStripMenuItem.Text = "E&xit";
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // OpenRomDialog
             // 
-            this.OpenRomDialog.Filter = "GameBoy ROMs|*.gb;*.gbc";
+            this.OpenRomDialog.Filter = "ROMs|*.gb;*.gbc;*.nes";
             // 
             // OpenProjectDialog
             // 
@@ -173,12 +176,31 @@
             this.Code.Name = "Code";
             this.Code.Offset = ((uint)(0u));
             this.Code.Project = null;
-            this.Code.Size = new System.Drawing.Size(680, 390);
+            this.Code.Size = new System.Drawing.Size(530, 390);
             this.Code.TabIndex = 5;
-            this.Code.Data += new System.EventHandler<GBDisassembler.DataEventArgs>(this.Code_Data);
-            this.Code.Goto += new System.EventHandler<GBDisassembler.GotoEventArgs>(this.Code_Goto);
-            this.Code.Replace += new System.EventHandler<GBDisassembler.ReplaceEventArgs>(this.Code_Replace);
-            this.Code.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
+            this.Code.Goto += new System.EventHandler<Lag.Disassembler.GotoEventArgs>(this.Code_Goto);
+            this.Code.Replace += new System.EventHandler<Lag.Disassembler.ReplaceEventArgs>(this.Code_Replace);
+            this.Code.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Code_KeyDown);
+            // 
+            // Ram
+            // 
+            this.Ram.CurrentLine = ((uint)(0u));
+            this.Ram.Dock = System.Windows.Forms.DockStyle.Right;
+            this.Ram.Font = new System.Drawing.Font("Lucida Console", 9.75F);
+            this.Ram.Location = new System.Drawing.Point(530, 60);
+            this.Ram.Name = "Ram";
+            this.Ram.Offset = ((uint)(0u));
+            this.Ram.Project = null;
+            this.Ram.Size = new System.Drawing.Size(150, 390);
+            this.Ram.TabIndex = 7;
+            // 
+            // ExportToolStripMenuItem
+            // 
+            this.ExportToolStripMenuItem.Enabled = false;
+            this.ExportToolStripMenuItem.Name = "ExportToolStripMenuItem";
+            this.ExportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ExportToolStripMenuItem.Text = "&Export";
+            this.ExportToolStripMenuItem.Click += new System.EventHandler(this.ExportToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -186,6 +208,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.Code);
+            this.Controls.Add(this.Ram);
             this.Controls.Add(this.LabelsBox);
             this.Controls.Add(this.ToolPanel);
             this.Controls.Add(this.TopMenu);
@@ -193,9 +216,9 @@
             this.KeyPreview = true;
             this.MainMenuStrip = this.TopMenu;
             this.Name = "MainForm";
-            this.Text = "GBDisassembler";
+            this.Text = "Lag.Disassembler";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Code_KeyDown);
             this.TopMenu.ResumeLayout(false);
             this.TopMenu.PerformLayout();
             this.ToolPanel.ResumeLayout(false);
@@ -221,6 +244,8 @@
         private System.Windows.Forms.Button BackBtn;
         private System.Windows.Forms.ListBox LabelsBox;
         private CodeDisplay Code;
+        private RAMDisplay Ram;
+        private System.Windows.Forms.ToolStripMenuItem ExportToolStripMenuItem;
     }
 }
 

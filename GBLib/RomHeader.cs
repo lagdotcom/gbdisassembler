@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Lag.DisassemblerLib;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
-namespace GBLib
+namespace Lag.GBLib
 {
     public class RomHeader
     {
@@ -10,9 +12,13 @@ namespace GBLib
 
         public RomHeader(byte[] raw) : this()
         {
+            CartridgeType = raw[0x47];
+            RAMSize = raw[0x49];
+            DestinationByte = raw[0x4A];
+
             CGB = DetermineCGB(raw[0x43]);
             SGB = DetermineSGB(raw[0x46]);
-            Logo = Tool.Slice(raw, 0x04, 0x34);
+            Logo = raw.Slice(0x04, 0x34);
             MBC = DetermineMBC(raw[0x47]);
             ROM = DetermineROM(raw[0x48]);
             RAM = DetermineRAM(raw[0x49]);
@@ -23,17 +29,17 @@ namespace GBLib
 
             if (CGB == CGBCompatibility.NonCGB)
             {
-                Title = Tool.Slice(raw, 0x34, 0x44).ToAscii();
+                Title = raw.Slice(0x34, 0x44).ToAscii();
             }
             else
             {
-                Title = Tool.Slice(raw, 0x34, 0x3F).ToAscii();
-                Manufacturer = Tool.Slice(raw, 0x3F, 0x43).ToAscii();
+                Title = raw.Slice(0x34, 0x3F).ToAscii();
+                Manufacturer = raw.Slice(0x3F, 0x43).ToAscii();
             }
 
             if (raw[0x4b] == 0x33)
             {
-                NewLicensee = Tool.Slice(raw, 0x44, 0x46).ToAscii();
+                NewLicensee = raw.Slice(0x44, 0x46).ToAscii();
             }
             else
             {
@@ -49,13 +55,17 @@ namespace GBLib
         public string NewLicensee;
         public bool SGB;
         public MemoryBankController MBC;
-        public int ROM;
-        public int RAM;
+        public uint ROM;
+        public uint RAM;
         public DestinationCode Destination;
         public byte? OldLicensee;
         public byte Version;
         public byte HeaderChecksum;
         public ushort GlobalChecksum;
+
+        public byte CartridgeType;
+        public byte RAMSize;
+        public byte DestinationByte;
 
         private static CGBCompatibility DetermineCGB(byte b)
         {
@@ -100,7 +110,7 @@ namespace GBLib
             }
         }
 
-        private static int DetermineROM(byte b)
+        private static uint DetermineROM(byte b)
         {
             switch(b)
             {
@@ -120,7 +130,7 @@ namespace GBLib
             }
         }
 
-        private static int DetermineRAM(byte b)
+        private static uint DetermineRAM(byte b)
         {
             switch (b)
             {
@@ -158,6 +168,40 @@ namespace GBLib
             lines.Add($"; MBC:{MBC} ROM:{ROM / 1024}KB RAM:{RAM / 1024}KB");
 
             return string.Join("\n", lines);
+        }
+
+        public void WriteAsm(StreamWriter sw)
+        {
+            if (CGB == CGBCompatibility.NonCGB)
+                sw.WriteLine(".INCLUDE \"gb_hardware.i\"");
+            else
+                sw.WriteLine(".INCLUDE \"cgb_hardware.i\"");
+
+            sw.WriteLine("\n.GBHEADER");
+            sw.WriteLine($"\tNAME \"{Title}\"");
+            if (OldLicensee.HasValue)
+                sw.WriteLine($"\tLICENSEECODEOLD ${OldLicensee:X2}");
+            else
+                sw.WriteLine($"\tLICENSEECOLDNEW \"{NewLicensee}\"");
+            sw.WriteLine($"\tCARTRIDGETYPE ${CartridgeType:X2}");
+            sw.WriteLine($"\tRAMSIZE ${RAMSize:X2}");
+            sw.WriteLine($"\tCOUNTRYCODE ${DestinationByte:X2}");
+            sw.WriteLine("\tNINTENDOLOGO");
+            sw.WriteLine($"\tVERSION ${Version:X2}");
+            sw.WriteLine($"\t{GetRomAsm()}\n");
+            
+            sw.WriteLine(".ENDGB\n");
+        }
+
+        private string GetRomAsm()
+        {
+            switch (CGB)
+            {
+                case CGBCompatibility.CGB: return "ROMGBC";
+                case CGBCompatibility.CGBOnly: return "ROMGBCONLY";
+                case CGBCompatibility.NonCGB: return "ROMDMG";
+                default: return $"; Unknown CGB state: {CGB}";
+            }
         }
     }
 }

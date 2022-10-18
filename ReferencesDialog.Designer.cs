@@ -1,4 +1,4 @@
-﻿namespace GBDisassembler
+﻿namespace Lag.Disassembler
 {
     partial class ReferencesDialog
     {

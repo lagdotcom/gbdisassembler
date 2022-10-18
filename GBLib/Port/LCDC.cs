@@ -1,7 +1,7 @@
-﻿namespace GBLib.Port
+﻿namespace Lag.GBLib.Port
 {
     public class LCDC : AbstractPort
     {
-        public LCDC(Disassembler dis) : base(dis, 0xFF40, nameof(LCDC)) { }
+        public LCDC(Gameboy dis) : base(dis, 0xFF40, nameof(LCDC)) { }
     }
 }

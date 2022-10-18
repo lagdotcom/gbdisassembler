@@ -1,35 +1,53 @@
-﻿namespace GBLib
+﻿using Lag.DisassemblerLib;
+using System.Collections.Generic;
+
+namespace Lag.GBLib
 {
-    public class MBC2 : IPortHandler
+    public class MBC2 : IMBC
     {
+        public const int BankSize = 0x4000;
+
         public MBC2()
         {
             RAMEnabled = false;
             ROMBank = 1;
         }
 
-        public MBC2(Disassembler dis) : this()
+        public MBC2(Gameboy dis) : this()
         {
             Parent = dis;
         }
 
-        public Disassembler Parent;
+        public Gameboy Parent;
         public bool RAMEnabled;
         public int ROMBank;
 
         // this isn't technically correct
-        public bool Handles(IOperand op) => op.Write && op.AbsoluteAddress < 0x3FFF;
+        public bool Handles(Word addr) => addr.Write && addr.Absolute < 0x3FFF;
 
-        public string Identify(uint address)
+        public string Identify(Word addr)
         {
-            if (address < 0x2000) return "[MBC2.RAMEnable]";
+            if (addr.Absolute < 0x2000) return "[MBC2.RAMEnable]";
             else return "[MBC2.ROMBank]";
         }
 
-        public void Apply(uint address, byte value)
+        public void Apply(Word addr, byte value)
         {
-            if (address < 0x2000) EnableRAM(value);
+            if (addr.Absolute < 0x2000) EnableRAM(value);
             else SetROMBank(value);
+        }
+
+        public IEnumerable<Segment> Segments(RomHeader h)
+        {
+            List<Segment> segs = new List<Segment>();
+            uint offset = 0;
+            while (offset < h.ROM)
+            {
+                segs.Add(new Segment($"ROM{offset / BankSize:X2}", 0, BankSize, offset));
+                offset += BankSize;
+            }
+
+            return segs;
         }
 
         private void EnableRAM(byte value)

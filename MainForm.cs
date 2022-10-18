@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using Lag.DisassemblerLib;
+using System;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using Lag.GBLib;
+using Lag.NESLib;
 
-namespace GBDisassembler
+namespace Lag.Disassembler
 {
-    using GBLib;
-    using GBLib.Operand;
-    using System.IO;
 
     public partial class MainForm : Form
     {
@@ -28,7 +24,7 @@ namespace GBDisassembler
             ChangeMade += MainForm_ChangeMade;
         }
 
-        public Disassembler Project { get; private set; }
+        public IProject Project { get; private set; }
         public string FileName { get; private set; }
         public bool UnsavedChanges { get; private set; }
 
@@ -37,12 +33,24 @@ namespace GBDisassembler
         public event EventHandler ProjectLoaded;
         public event EventHandler ProjectSaved;
 
-        public void LoadProject(Disassembler project, bool isNew = false)
+        public IProject NewProject(string path)
+        {
+            string ext = Path.GetExtension(path).ToLower();
+
+            if (ext == ".gb" || ext == ".gbc") return new Gameboy(path);
+            if (ext == ".nes") return new Nes(path);
+
+            throw new InvalidDataException($"Unknown ROM file extension: ${ext}");
+        }
+
+        public void LoadProject(IProject project, bool isNew = false)
         {
             Project = project;
             CloseToolStripMenuItem.Enabled = true;
             SaveToolStripMenuItem.Enabled = true;
+            ExportToolStripMenuItem.Enabled = true;
             Code.Project = project;
+            Ram.Project = project;
             UpdateTitleBar();
             UpdateLabels();
 
@@ -76,9 +84,11 @@ namespace GBDisassembler
             Project = null;
             CloseToolStripMenuItem.Enabled = false;
             SaveToolStripMenuItem.Enabled = false;
+            ExportToolStripMenuItem.Enabled = true;
             BackBtn.Enabled = false;
             FwdBtn.Enabled = false;
             Code.Project = null;
+            Ram.Project = null;
             UpdateTitleBar();
             LabelsBox.Items.Clear();
 
@@ -107,53 +117,51 @@ namespace GBDisassembler
             return true;
         }
 
-        public void LabelOffset(uint offset, string label = null)
+        public void LabelOffset(uint location, string label = null)
         {
             if (string.IsNullOrWhiteSpace(label))
             {
-                NamingDialog dlg = new NamingDialog
+                using (NamingDialog dlg = new NamingDialog { Text = $"Label {Project.FromAbsolute(location)}..." })
                 {
-                    Text = $"Label ROM{new BankedAddress(offset).ToString()}..."
-                };
-                if (Project.Labeller.Labels.ContainsKey(offset))
-                    dlg.NameString = Project.Labeller.Labels[offset];
+                    if (Project.Labeller.Labels.ContainsKey(location))
+                        dlg.NameString = Project.Labeller.Labels[location];
 
-                if (dlg.ShowDialog() == DialogResult.Cancel)
-                    return;
+                    if (dlg.ShowDialog() == DialogResult.Cancel)
+                        return;
 
-                label = dlg.NameString;
+                    label = dlg.NameString;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(label))
-                Project.Labeller.Labels.Remove(offset);
+                Project.Labeller.Labels.Remove(location);
             else
-                Project.Labeller.Labels[offset] = label;
+                Project.Labeller.Labels[location] = label;
 
             UpdateLabels();
             ChangeMade?.Invoke(this, null);
         }
 
-        public void CommentOffset(uint offset, string label = null)
+        public void CommentOffset(uint location, string label = null)
         {
             if (string.IsNullOrWhiteSpace(label))
             {
-                NamingDialog dlg = new NamingDialog
+                using (NamingDialog dlg = new NamingDialog { Text = $"Comment ROM{Project.FromAbsolute(location)}..." })
                 {
-                    Text = $"Comment ROM{new BankedAddress(offset).ToString()}..."
-                };
-                if (Project.Comments.ContainsKey(offset))
-                    dlg.NameString = Project.Comments[offset];
+                    if (Project.Comments.ContainsKey(location))
+                        dlg.NameString = Project.Comments[location];
 
-                if (dlg.ShowDialog() == DialogResult.Cancel)
-                    return;
+                    if (dlg.ShowDialog() == DialogResult.Cancel)
+                        return;
 
-                label = dlg.NameString;
+                    label = dlg.NameString;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(label))
-                Project.Comments.Remove(offset);
+                Project.Comments.Remove(location);
             else
-                Project.Comments[offset] = label;
+                Project.Comments[location] = label;
 
             ChangeMade?.Invoke(this, null);
         }
@@ -162,17 +170,16 @@ namespace GBDisassembler
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                NamingDialog dlg = new NamingDialog
+                using (NamingDialog dlg = new NamingDialog { Text = $"Label RAM:{address:X4}..." })
                 {
-                    Text = $"Label RAM:{address:X4}..."
-                };
-                if (Project.Namer.Names.ContainsKey(address))
-                    dlg.NameString = Project.Namer.Names[address];
+                    if (Project.Namer.Names.ContainsKey(address))
+                        dlg.NameString = Project.Namer.Names[address];
 
-                if (dlg.ShowDialog() == DialogResult.Cancel)
-                    return;
+                    if (dlg.ShowDialog() == DialogResult.Cancel)
+                        return;
 
-                name = dlg.NameString;
+                    name = dlg.NameString;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -193,6 +200,9 @@ namespace GBDisassembler
         {
             if (Project.Instructions.ContainsKey(offset))
             {
+                if (Project.CustomOperands.ContainsKey(offset))
+                    Project.DeleteCustomOperand(offset);
+
                 Project.Instructions.Remove(offset);
                 ChangeMade?.Invoke(this, null);
             }
@@ -201,36 +211,33 @@ namespace GBDisassembler
         public void FindReferences(uint offset)
         {
             var references = Project.Instructions.Where(pair => pair.Value.Operands != null
-                && pair.Value.Operands.Any(o => o.AbsoluteAddress.HasValue && o.AbsoluteAddress.Value == offset));
+                && pair.Value.Operands.Any(o => (o as Word)?.Absolute == offset));
 
             if (references.Count() > 0)
             {
-                ReferencesDialog dlg = new ReferencesDialog
+                using (ReferencesDialog dlg = new ReferencesDialog { References = references.Select(pair => pair.Value).OrderBy(inst => inst.Location) })
                 {
-                    References = references.Select(pair => pair.Value).OrderBy(inst => inst.Location)
-                };
-
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    history.Remember(Code.CurrentLine);
-                    history.Move(dlg.Address);
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        history.Remember(Code.CurrentLine);
+                        history.Move(dlg.Address);
+                    }
                 }
             }
             else MessageBox.Show("No references found.", "Warning", MessageBoxButtons.OK);
         }
 
-        public void ShowGoto(uint offset)
+        public void ShowGoto(uint location)
         {
-            BankedAddress ba = new BankedAddress(offset);
-            GotoDialog dlg = new GotoDialog
-            {
-                Address = ba
-            };
+            Word addr = Project.FromAbsolute(location);
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            using (GotoDialog dlg = new GotoDialog { Segments = Project.Segments, Address = addr })
             {
-                history.Remember(Code.CurrentLine);
-                history.Move(dlg.Address.AbsoluteAddress.Value);
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    history.Remember(Code.CurrentLine);
+                    history.Move(dlg.Address.Absolute);
+                }
             }
         }
 
@@ -238,24 +245,24 @@ namespace GBDisassembler
         {
             if (Project == null)
             {
-                Text = "GBDisassembler";
+                Text = "Lag.Disassembler";
                 return;
             }
 
             if (string.IsNullOrEmpty(FileName))
             {
-                Text = "GBDisassembler - New Project*";
+                Text = "Lag.Disassembler - New Project*";
                 return;
             }
 
-            Text = $"GBDisassembler - {Path.GetFileName(FileName)}{(UnsavedChanges ? "*" : "")}";
+            Text = $"Lag.Disassembler - {Path.GetFileName(FileName)}{(UnsavedChanges ? "*" : "")}";
         }
 
         protected void UpdateLabels()
         {
             LabelsBox.Items.Clear();
 
-            foreach (var pair in Project.Labeller.Labels.OrderBy(pair => pair.Key))
+            foreach (var pair in Project.Labeller.Labels.OrderBy(pair => pair.Key).Where(pair => !pair.Value.StartsWith("auto_")))
                 LabelsBox.Items.Add(new OffsetLabel(pair.Key, pair.Value));
         }
 
@@ -271,7 +278,7 @@ namespace GBDisassembler
             if (OpenRomDialog.ShowDialog() == DialogResult.OK)
             {
                 FileName = string.Empty;
-                Disassembler project = new Disassembler(OpenRomDialog.FileName);
+                IProject project = NewProject(OpenRomDialog.FileName);
                 project.StandardAnalysis();
                 LoadProject(project, true);
             }
@@ -284,7 +291,7 @@ namespace GBDisassembler
             if (OpenProjectDialog.ShowDialog() == DialogResult.OK)
             {
                 FileName = OpenProjectDialog.FileName;
-                Disassembler project = Serializer.LoadProject(FileName);
+                IProject project = Serializer.LoadProject(FileName);
                 LoadProject(project);
             }
         }
@@ -294,6 +301,7 @@ namespace GBDisassembler
             UnsavedChanges = true;
             UpdateTitleBar();
             Code.Invalidate();
+            Ram.Invalidate();
         }
 
         private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -321,7 +329,7 @@ namespace GBDisassembler
             e.Cancel = !SaveBeforeClosing();
         }
 
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        private void Code_KeyDown(object sender, KeyEventArgs e)
         {
             if (Project == null) return;
 
@@ -348,10 +356,10 @@ namespace GBDisassembler
                     return;
 
                 case Keys.L:
-                    if (Code.CurrentOp != null && Code.CurrentOp.AbsoluteAddress.HasValue)
+                    if (Code.CurrentOp != null)
                     {
                         e.Handled = true;
-                        NameAddress(Code.CurrentOp.AbsoluteAddress.Value);
+                        NameAddress(Code.CurrentOp.Absolute);
                     }
                     return;
 
@@ -401,13 +409,7 @@ namespace GBDisassembler
 
         private void Code_Replace(object sender, ReplaceEventArgs e)
         {
-            Project.AddCustomOperand(e.Location, e.Index, e.Operand);
-            ChangeMade?.Invoke(this, null);
-        }
-
-        private void Code_Data(object sender, DataEventArgs e)
-        {
-            Project.DataTypes[e.Location] = e.Type;
+            Project.AddCustomOperand(e.Location, e.Operand);
             ChangeMade?.Invoke(this, null);
         }
 
@@ -429,6 +431,14 @@ namespace GBDisassembler
             public string Label;
 
             public override string ToString() => Label;
+        }
+
+        private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string export = FileName + ".s";
+            Project.Export(export);
+
+            MessageBox.Show($"Listing written to {export}", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
